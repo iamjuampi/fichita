@@ -1,0 +1,146 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+:root {
+  /* Updated color tokens to use yellow-green palette */
+  --background: #232608; /* UI/UX-2: Very dark olive */
+  --foreground: #daf222; /* UI/UX-1: Bright lime green */
+  --card: #898c23; /* UI/UX-3: Olive green */
+  --card-foreground: #daf222; /* UI/UX-1: Bright lime green */
+  --popover: #898c23; /* UI/UX-3: Olive green */
+  --popover-foreground: #daf222; /* UI/UX-1: Bright lime green */
+  --primary: #f2e635; /* UI/UX-4: Bright yellow */
+  --primary-foreground: #232608; /* UI/UX-2: Very dark olive */
+  --secondary: #898c23; /* UI/UX-3: Olive green */
+  --secondary-foreground: #daf222; /* UI/UX-1: Bright lime green */
+  --muted: #d9cdbf; /* UI/UX-5: Light beige */
+  --muted-foreground: #232608; /* UI/UX-2: Very dark olive */
+  --accent: #daf222; /* UI/UX-1: Bright lime green */
+  --accent-foreground: #232608; /* UI/UX-2: Very dark olive */
+  --destructive: #c62828; /* Keep red for destructive actions */
+  --destructive-foreground: #ffffff;
+  --border: #898c23; /* UI/UX-3: Olive green */
+  --input: #898c23; /* UI/UX-3: Olive green */
+  --ring: #f2e635; /* UI/UX-4: Bright yellow */
+  --chart-1: #daf222; /* UI/UX-1: Bright lime green */
+  --chart-2: #f2e635; /* UI/UX-4: Bright yellow */
+  --chart-3: #898c23; /* UI/UX-3: Olive green */
+  --chart-4: #d9cdbf; /* UI/UX-5: Light beige */
+  --chart-5: #232608; /* UI/UX-2: Very dark olive */
+  --radius: 0.5rem;
+  --sidebar: #898c23; /* UI/UX-3: Olive green */
+  --sidebar-foreground: #daf222; /* UI/UX-1: Bright lime green */
+  --sidebar-primary: #f2e635; /* UI/UX-4: Bright yellow */
+  --sidebar-primary-foreground: #232608; /* UI/UX-2: Very dark olive */
+  --sidebar-accent: #daf222; /* UI/UX-1: Bright lime green */
+  --sidebar-accent-foreground: #232608; /* UI/UX-2: Very dark olive */
+  --sidebar-border: #898c23; /* UI/UX-3: Olive green */
+  --sidebar-ring: #f2e635; /* UI/UX-4: Bright yellow */
+}
+
+.dark {
+  /* Dark mode tokens updated to match new palette */
+  --background: #232608; /* UI/UX-2: Very dark olive */
+  --foreground: #daf222; /* UI/UX-1: Bright lime green */
+  --card: #898c23; /* UI/UX-3: Olive green */
+  --card-foreground: #daf222; /* UI/UX-1: Bright lime green */
+  --popover: #898c23; /* UI/UX-3: Olive green */
+  --popover-foreground: #daf222; /* UI/UX-1: Bright lime green */
+  --primary: #f2e635; /* UI/UX-4: Bright yellow */
+  --primary-foreground: #232608; /* UI/UX-2: Very dark olive */
+  --secondary: #898c23; /* UI/UX-3: Olive green */
+  --secondary-foreground: #daf222; /* UI/UX-1: Bright lime green */
+  --muted: #d9cdbf; /* UI/UX-5: Light beige */
+  --muted-foreground: #232608; /* UI/UX-2: Very dark olive */
+  --accent: #daf222; /* UI/UX-1: Bright lime green */
+  --accent-foreground: #232608; /* UI/UX-2: Very dark olive */
+  --destructive: #c62828; /* Keep red for destructive actions */
+  --destructive-foreground: #ffffff;
+  --border: #898c23; /* UI/UX-3: Olive green */
+  --input: #898c23; /* UI/UX-3: Olive green */
+  --ring: #f2e635; /* UI/UX-4: Bright yellow */
+  --chart-1: #daf222; /* UI/UX-1: Bright lime green */
+  --chart-2: #f2e635; /* UI/UX-4: Bright yellow */
+  --chart-3: #898c23; /* UI/UX-3: Olive green */
+  --chart-4: #d9cdbf; /* UI/UX-5: Light beige */
+  --chart-5: #232608; /* UI/UX-2: Very dark olive */
+  --radius: 0.5rem;
+  --sidebar: #898c23; /* UI/UX-3: Olive green */
+  --sidebar-foreground: #daf222; /* UI/UX-1: Bright lime green */
+  --sidebar-primary: #f2e635; /* UI/UX-4: Bright yellow */
+  --sidebar-primary-foreground: #232608; /* UI/UX-2: Very dark olive */
+  --sidebar-accent: #daf222; /* UI/UX-1: Bright lime green */
+  --sidebar-accent-foreground: #232608; /* UI/UX-2: Very dark olive */
+  --sidebar-border: #898c23; /* UI/UX-3: Olive green */
+  --sidebar-ring: #f2e635; /* UI/UX-4: Bright yellow */
+}
+
+@theme inline {
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+}
+
+@layer utilities {
+  .text-shadow-soft {
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+  }
+
+  .text-shadow-medium {
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.7);
+  }
+
+  .text-shadow-strong {
+    text-shadow: 0 2px 6px rgba(0, 0, 0, 0.8);
+  }
+
+  .text-shadow-glow {
+    text-shadow: 0 0 8px rgba(0, 0, 0, 0.6), 0 2px 4px rgba(0, 0, 0, 0.8);
+  }
+}
