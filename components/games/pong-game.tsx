@@ -21,9 +21,9 @@ interface GameState {
 export function PongGame({ isActive, onPlay, onScoreUpdate }: PongGameProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const gameStateRef = useRef<GameState>({
-    ball: { x: 200, y: 300, dx: 4, dy: 3 },
-    playerPaddle: { y: 250 },
-    aiPaddle: { y: 250 },
+    ball: { x: 160, y: 240, dx: 4, dy: 3 },
+    playerPaddle: { y: 200 },
+    aiPaddle: { y: 200 },
     score: { player: 0, ai: 0 },
   })
   const animationRef = useRef<number>()
@@ -32,35 +32,61 @@ export function PongGame({ isActive, onPlay, onScoreUpdate }: PongGameProps) {
 
   const [score, setScore] = useState(0)
 
-  const CANVAS_WIDTH = 400
-  const CANVAS_HEIGHT = 600
+  const CANVAS_WIDTH = 320
+  const CANVAS_HEIGHT = 480
   const PADDLE_WIDTH = 8
   const PADDLE_HEIGHT = 80
   const BALL_SIZE = 8
 
   useEffect(() => {
     // Initialize audio
-    audioRef.current = new Audio("https://audio.jukehost.co.uk/PZNJCVLCvrQvU8R0SBOvnBAxtZxLtQqI")
-    audioRef.current.loop = true
-    audioRef.current.volume = 0.3
+    const initAudio = async () => {
+      try {
+        audioRef.current = new Audio("https://audio.jukehost.co.uk/PZNJCVLCvrQvU8R0SBOvnBAxtZxLtQqI")
+        audioRef.current.loop = true
+        audioRef.current.volume = 0.3
+        audioRef.current.preload = "metadata"
+      } catch (error) {
+        console.warn("Audio initialization failed:", error)
+      }
+    }
+
+    initAudio()
 
     return () => {
       if (audioRef.current) {
-        audioRef.current.pause()
+        try {
+          audioRef.current.pause()
+          audioRef.current.src = ""
+          audioRef.current.load()
+        } catch (error) {
+          // Ignore cleanup errors
+        }
         audioRef.current = null
       }
     }
   }, [])
 
   useEffect(() => {
-    if (audioRef.current) {
-      if (isActive) {
-        audioRef.current.play().catch(console.error)
-      } else {
-        audioRef.current.pause()
-        audioRef.current.currentTime = 0
+    const handleAudio = async () => {
+      if (!audioRef.current) return
+
+      try {
+        if (isActive) {
+          await audioRef.current.play()
+        } else {
+          audioRef.current.pause()
+          audioRef.current.currentTime = 0
+        }
+      } catch (error) {
+        if (error.name !== "AbortError") {
+          console.warn("Audio operation failed:", error)
+        }
+        // Silently ignore AbortError as it's expected during rapid scrolling
       }
     }
+
+    handleAudio()
   }, [isActive])
 
   const resetBall = useCallback(() => {

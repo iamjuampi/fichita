@@ -1,8 +1,9 @@
 "use client"
 
+import type React from "react"
+
 import { useState, useEffect, useRef, useCallback } from "react"
 import { Button } from "@/components/ui/button"
-import { RotateCw, ChevronLeft, ChevronRight, ChevronDown } from "lucide-react"
 
 interface TetrisGameProps {
   isActive: boolean
@@ -78,7 +79,7 @@ interface GameState {
 
 const GRID_WIDTH = 10
 const GRID_HEIGHT = 20
-const CELL_SIZE = 16
+const CELL_SIZE = 24
 
 export function TetrisGame({ isActive, onPlay, onScoreUpdate }: TetrisGameProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
@@ -97,32 +98,62 @@ export function TetrisGame({ isActive, onPlay, onScoreUpdate }: TetrisGameProps)
   const lastDropTime = useRef<number>(0)
   const audioRef = useRef<HTMLAudioElement | null>(null)
 
+  const touchStartRef = useRef<{ x: number; y: number; time: number } | null>(null)
+  const holdTimeoutRef = useRef<NodeJS.Timeout | null>(null)
+  const dropIntervalRef = useRef<NodeJS.Timeout | null>(null)
+
   const [score, setScore] = useState(0)
   const [lines, setLines] = useState(0)
   const [gameOver, setGameOver] = useState(false)
 
   useEffect(() => {
-    audioRef.current = new Audio("https://audio.jukehost.co.uk/xWzqkPAuaSuh0W5QCe7qPJV8rArjKVBR")
-    audioRef.current.loop = true
-    audioRef.current.volume = 0.3
+    const initAudio = async () => {
+      try {
+        audioRef.current = new Audio("https://audio.jukehost.co.uk/xWzqkPAuaSuh0W5QCe7qPJV8rArjKVBR")
+        audioRef.current.loop = true
+        audioRef.current.volume = 0.3
+        audioRef.current.preload = "metadata"
+      } catch (error) {
+        console.warn("Audio initialization failed:", error)
+      }
+    }
+
+    initAudio()
 
     return () => {
       if (audioRef.current) {
-        audioRef.current.pause()
+        try {
+          audioRef.current.pause()
+          audioRef.current.src = ""
+          audioRef.current.load()
+        } catch (error) {
+          // Ignore cleanup errors
+        }
         audioRef.current = null
       }
     }
   }, [])
 
   useEffect(() => {
-    if (audioRef.current) {
-      if (isActive) {
-        audioRef.current.play().catch(console.error)
-      } else {
-        audioRef.current.pause()
-        audioRef.current.currentTime = 0
+    const handleAudio = async () => {
+      if (!audioRef.current) return
+
+      try {
+        if (isActive) {
+          await audioRef.current.play()
+        } else {
+          audioRef.current.pause()
+          audioRef.current.currentTime = 0
+        }
+      } catch (error) {
+        if (error.name !== "AbortError") {
+          console.warn("Audio operation failed:", error)
+        }
+        // Silently ignore AbortError as it's expected during rapid scrolling
       }
     }
+
+    handleAudio()
   }, [isActive])
 
   const getRandomTetromino = (): TetrominoType => {
@@ -368,6 +399,87 @@ export function TetrisGame({ isActive, onPlay, onScoreUpdate }: TetrisGameProps)
     }
   }, [isActive, gameOver, gameLoop, resetGame])
 
+  const handleTouchStart = useCallback((e: React.TouchEvent) => {
+    e.preventDefault()
+    const touch = e.touches[0]
+    const rect = canvasRef.current?.getBoundingClientRect()
+    if (!rect) return
+
+    touchStartRef.current = {
+      x: touch.clientX - rect.left,
+      y: touch.clientY - rect.top,
+      time: Date.now(),
+    }
+
+    // Start hold timer for dropping pieces
+    holdTimeoutRef.current = setTimeout(() => {
+      // Start continuous dropping
+      dropIntervalRef.current = setInterval(() => {
+        movePiece(0, 1)
+      }, 50)
+    }, 200) // 200ms hold threshold
+  }, [])
+
+  const handleTouchMove = useCallback((e: React.TouchEvent) => {
+    e.preventDefault()
+    if (!touchStartRef.current) return
+
+    const touch = e.touches[0]
+    const rect = canvasRef.current?.getBoundingClientRect()
+    if (!rect) return
+
+    const currentX = touch.clientX - rect.left
+    const deltaX = currentX - touchStartRef.current.x
+    const absDeltaX = Math.abs(deltaX)
+
+    // Swipe threshold for left/right movement
+    if (absDeltaX > 30) {
+      if (deltaX > 0) {
+        movePiece(1, 0) // Move right
+      } else {
+        movePiece(-1, 0) // Move left
+      }
+      // Reset touch start to prevent multiple moves
+      touchStartRef.current.x = currentX
+    }
+  }, [])
+
+  const handleTouchEnd = useCallback((e: React.TouchEvent) => {
+    e.preventDefault()
+
+    // Clear hold timers
+    if (holdTimeoutRef.current) {
+      clearTimeout(holdTimeoutRef.current)
+      holdTimeoutRef.current = null
+    }
+    if (dropIntervalRef.current) {
+      clearInterval(dropIntervalRef.current)
+      dropIntervalRef.current = null
+    }
+
+    if (!touchStartRef.current) return
+
+    const touchDuration = Date.now() - touchStartRef.current.time
+
+    // If it was a quick tap (not a hold), rotate the piece
+    if (touchDuration < 200) {
+      rotatePieceAction()
+    }
+
+    touchStartRef.current = null
+  }, [])
+
+  useEffect(() => {
+    return () => {
+      if (holdTimeoutRef.current) {
+        clearTimeout(holdTimeoutRef.current)
+      }
+      if (dropIntervalRef.current) {
+        clearInterval(dropIntervalRef.current)
+      }
+    }
+  }, [])
+
   if (!isActive) {
     return (
       <div className="h-full w-full bg-gradient-to-br from-yellow-400 to-amber-500 flex items-center justify-center">
@@ -408,60 +520,23 @@ export function TetrisGame({ isActive, onPlay, onScoreUpdate }: TetrisGameProps)
             </Button>
           </div>
         ) : (
-          <canvas
-            ref={canvasRef}
-            width={GRID_WIDTH * CELL_SIZE}
-            height={GRID_HEIGHT * CELL_SIZE}
-            className="border-2 border-white/20 rounded-lg bg-background/20 backdrop-blur-sm"
-            style={{ touchAction: "none" }}
-          />
+          <div className="relative">
+            <canvas
+              ref={canvasRef}
+              width={GRID_WIDTH * CELL_SIZE}
+              height={GRID_HEIGHT * CELL_SIZE}
+              className="border-2 border-white/20 rounded-lg bg-background/20 backdrop-blur-sm"
+              style={{ touchAction: "none" }}
+              onTouchStart={handleTouchStart}
+              onTouchMove={handleTouchMove}
+              onTouchEnd={handleTouchEnd}
+            />
+            <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 bg-black/50 rounded-lg px-3 py-2 backdrop-blur-sm">
+              <p className="text-white text-xs text-center text-shadow-soft">Swipe: Move • Tap: Rotate • Hold: Drop</p>
+            </div>
+          </div>
         )}
       </div>
-
-      {/* Controls */}
-      {!gameOver && (
-        <div className="absolute bottom-20 left-4 right-20 bg-white/10 rounded-lg p-4 backdrop-blur-sm">
-          <div className="grid grid-cols-4 gap-2 mb-2">
-            <Button
-              onTouchStart={() => movePiece(-1, 0)}
-              onClick={() => movePiece(-1, 0)}
-              variant="ghost"
-              size="sm"
-              className="text-white hover:bg-white/20 h-12"
-            >
-              <ChevronLeft className="h-6 w-6" />
-            </Button>
-            <Button
-              onTouchStart={() => rotatePieceAction()}
-              onClick={() => rotatePieceAction()}
-              variant="ghost"
-              size="sm"
-              className="text-white hover:bg-white/20 h-12"
-            >
-              <RotateCw className="h-6 w-6" />
-            </Button>
-            <Button
-              onTouchStart={() => movePiece(1, 0)}
-              onClick={() => movePiece(1, 0)}
-              variant="ghost"
-              size="sm"
-              className="text-white hover:bg-white/20 h-12"
-            >
-              <ChevronRight className="h-6 w-6" />
-            </Button>
-            <Button
-              onTouchStart={() => dropPiece()}
-              onClick={() => dropPiece()}
-              variant="ghost"
-              size="sm"
-              className="text-white hover:bg-white/20 h-12"
-            >
-              <ChevronDown className="h-6 w-6" />
-            </Button>
-          </div>
-          <p className="text-white/80 text-center text-xs text-shadow-soft">Left/Right • Rotate • Drop</p>
-        </div>
-      )}
     </div>
   )
 }

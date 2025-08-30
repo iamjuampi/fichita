@@ -2,7 +2,7 @@
 
 import type React from "react"
 
-import { useState, useRef, useCallback } from "react"
+import { useState, useRef, useCallback, useEffect } from "react"
 import { GameCard } from "./game-card"
 
 // Placeholder games data - will be replaced with actual games later
@@ -45,8 +45,13 @@ const GAMES = [
   },
 ]
 
+const INFINITE_GAMES = Array.from({ length: GAMES.length * 100 }, (_, index) => ({
+  ...GAMES[index % GAMES.length],
+  uniqueId: `${GAMES[index % GAMES.length].id}-${Math.floor(index / GAMES.length)}`,
+}))
+
 export function GameFeed() {
-  const [currentIndex, setCurrentIndex] = useState(0)
+  const [currentIndex, setCurrentIndex] = useState(GAMES.length * 50)
   const [isScrolling, setIsScrolling] = useState(false)
   const containerRef = useRef<HTMLDivElement>(null)
   const touchStartY = useRef<number>(0)
@@ -59,15 +64,29 @@ export function GameFeed() {
       setIsScrolling(true)
 
       if (direction === "down") {
-        setCurrentIndex((prev) => (prev + 1) % GAMES.length)
+        setCurrentIndex((prev) => prev + 1)
       } else {
-        setCurrentIndex((prev) => (prev - 1 + GAMES.length) % GAMES.length)
+        setCurrentIndex((prev) => prev - 1)
       }
 
       setTimeout(() => setIsScrolling(false), 500)
     },
     [isScrolling],
   )
+
+  useEffect(() => {
+    if (currentIndex >= INFINITE_GAMES.length - GAMES.length) {
+      // Near the end, reset to middle
+      setTimeout(() => {
+        setCurrentIndex(GAMES.length * 50)
+      }, 600)
+    } else if (currentIndex < GAMES.length) {
+      // Near the beginning, reset to middle
+      setTimeout(() => {
+        setCurrentIndex(GAMES.length * 50)
+      }, 600)
+    }
+  }, [currentIndex])
 
   const handleTouchStart = (e: React.TouchEvent) => {
     touchStartY.current = e.touches[0].clientY
@@ -108,11 +127,11 @@ export function GameFeed() {
         className="flex flex-col transition-transform duration-500 ease-out"
         style={{
           transform: `translateY(-${currentIndex * 100}vh)`,
-          height: `${GAMES.length * 100}vh`,
+          height: `${INFINITE_GAMES.length * 100}vh`,
         }}
       >
-        {GAMES.map((game, index) => (
-          <div key={game.id} className="h-screen w-full flex-shrink-0">
+        {INFINITE_GAMES.map((game, index) => (
+          <div key={game.uniqueId} className="h-screen w-full flex-shrink-0">
             <GameCard game={game} isActive={index === currentIndex} />
           </div>
         ))}

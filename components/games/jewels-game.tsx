@@ -30,27 +30,53 @@ export function JewelsGame({ isActive, onPlay, onScoreUpdate }: JewelsGameProps)
   const audioRef = useRef<HTMLAudioElement | null>(null)
 
   useEffect(() => {
-    audioRef.current = new Audio("https://audio.jukehost.co.uk/xEtMgwOsbAfBCbnwfUTLwaxKje3BgeMN")
-    audioRef.current.loop = true
-    audioRef.current.volume = 0.3
+    const initAudio = async () => {
+      try {
+        audioRef.current = new Audio("https://audio.jukehost.co.uk/xEtMgwOsbAfBCbnwfUTLwaxKje3BgeMN")
+        audioRef.current.loop = true
+        audioRef.current.volume = 0.3
+        audioRef.current.preload = "metadata"
+      } catch (error) {
+        console.warn("Audio initialization failed:", error)
+      }
+    }
+
+    initAudio()
 
     return () => {
       if (audioRef.current) {
-        audioRef.current.pause()
+        try {
+          audioRef.current.pause()
+          audioRef.current.src = ""
+          audioRef.current.load()
+        } catch (error) {
+          // Ignore cleanup errors
+        }
         audioRef.current = null
       }
     }
   }, [])
 
   useEffect(() => {
-    if (audioRef.current) {
-      if (isActive) {
-        audioRef.current.play().catch(console.error)
-      } else {
-        audioRef.current.pause()
-        audioRef.current.currentTime = 0
+    const handleAudio = async () => {
+      if (!audioRef.current) return
+
+      try {
+        if (isActive) {
+          await audioRef.current.play()
+        } else {
+          audioRef.current.pause()
+          audioRef.current.currentTime = 0
+        }
+      } catch (error) {
+        if (error.name !== "AbortError") {
+          console.warn("Audio operation failed:", error)
+        }
+        // Silently ignore AbortError as it's expected during rapid scrolling
       }
     }
+
+    handleAudio()
   }, [isActive])
 
   // Initialize grid with random jewels
@@ -241,7 +267,7 @@ export function JewelsGame({ isActive, onPlay, onScoreUpdate }: JewelsGameProps)
             <button
               key={`${rowIndex}-${colIndex}`}
               className={`
-                h-8 w-8 rounded-md border-2 transition-all duration-200
+                h-10 w-10 rounded-md border-2 transition-all duration-200
                 ${JEWEL_COLORS[jewel] || "bg-gray-500"}
                 ${
                   selectedCell?.row === rowIndex && selectedCell?.col === colIndex

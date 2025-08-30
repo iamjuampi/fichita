@@ -80,27 +80,53 @@ export function SpaceInvadersGame({ isActive, onPlay, onScoreUpdate }: SpaceInva
   const [gameOver, setGameOver] = useState(false)
 
   useEffect(() => {
-    audioRef.current = new Audio("https://audio.jukehost.co.uk/R4hBA1oRwkoCEa7b5kL0auyywI2ClcQc")
-    audioRef.current.loop = true
-    audioRef.current.volume = 0.3
+    const initAudio = async () => {
+      try {
+        audioRef.current = new Audio("https://audio.jukehost.co.uk/R4hBA1oRwkoCEa7b5kL0auyywI2ClcQc")
+        audioRef.current.loop = true
+        audioRef.current.volume = 0.3
+        audioRef.current.preload = "metadata"
+      } catch (error) {
+        console.warn("Audio initialization failed:", error)
+      }
+    }
+
+    initAudio()
 
     return () => {
       if (audioRef.current) {
-        audioRef.current.pause()
+        try {
+          audioRef.current.pause()
+          audioRef.current.src = ""
+          audioRef.current.load()
+        } catch (error) {
+          // Ignore cleanup errors
+        }
         audioRef.current = null
       }
     }
   }, [])
 
   useEffect(() => {
-    if (audioRef.current) {
-      if (isActive) {
-        audioRef.current.play().catch(console.error)
-      } else {
-        audioRef.current.pause()
-        audioRef.current.currentTime = 0
+    const handleAudio = async () => {
+      if (!audioRef.current) return
+
+      try {
+        if (isActive) {
+          await audioRef.current.play()
+        } else {
+          audioRef.current.pause()
+          audioRef.current.currentTime = 0
+        }
+      } catch (error) {
+        if (error.name !== "AbortError") {
+          console.warn("Audio operation failed:", error)
+        }
+        // Silently ignore AbortError as it's expected during rapid scrolling
       }
     }
+
+    handleAudio()
   }, [isActive])
 
   const createAliens = () => {
