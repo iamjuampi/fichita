@@ -28,6 +28,7 @@ export function PongGame({ isActive, onPlay, onScoreUpdate }: PongGameProps) {
   })
   const animationRef = useRef<number>()
   const touchStartY = useRef<number>(0)
+  const audioRef = useRef<HTMLAudioElement | null>(null)
 
   const [score, setScore] = useState(0)
 
@@ -36,6 +37,31 @@ export function PongGame({ isActive, onPlay, onScoreUpdate }: PongGameProps) {
   const PADDLE_WIDTH = 8
   const PADDLE_HEIGHT = 80
   const BALL_SIZE = 8
+
+  useEffect(() => {
+    // Initialize audio
+    audioRef.current = new Audio("https://audio.jukehost.co.uk/PZNJCVLCvrQvU8R0SBOvnBAxtZxLtQqI")
+    audioRef.current.loop = true
+    audioRef.current.volume = 0.3
+
+    return () => {
+      if (audioRef.current) {
+        audioRef.current.pause()
+        audioRef.current = null
+      }
+    }
+  }, [])
+
+  useEffect(() => {
+    if (audioRef.current) {
+      if (isActive) {
+        audioRef.current.play().catch(console.error)
+      } else {
+        audioRef.current.pause()
+        audioRef.current.currentTime = 0
+      }
+    }
+  }, [isActive])
 
   const resetBall = useCallback(() => {
     const state = gameStateRef.current

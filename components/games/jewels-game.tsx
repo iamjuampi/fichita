@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useCallback } from "react"
+import { useState, useEffect, useCallback, useRef } from "react"
 
 interface JewelsGameProps {
   isActive: boolean
@@ -27,6 +27,31 @@ export function JewelsGame({ isActive, onPlay, onScoreUpdate }: JewelsGameProps)
   const [score, setScore] = useState(0)
   const [selectedCell, setSelectedCell] = useState<Position | null>(null)
   const [isAnimating, setIsAnimating] = useState(false)
+  const audioRef = useRef<HTMLAudioElement | null>(null)
+
+  useEffect(() => {
+    audioRef.current = new Audio("https://audio.jukehost.co.uk/xEtMgwOsbAfBCbnwfUTLwaxKje3BgeMN")
+    audioRef.current.loop = true
+    audioRef.current.volume = 0.3
+
+    return () => {
+      if (audioRef.current) {
+        audioRef.current.pause()
+        audioRef.current = null
+      }
+    }
+  }, [])
+
+  useEffect(() => {
+    if (audioRef.current) {
+      if (isActive) {
+        audioRef.current.play().catch(console.error)
+      } else {
+        audioRef.current.pause()
+        audioRef.current.currentTime = 0
+      }
+    }
+  }, [isActive])
 
   // Initialize grid with random jewels
   const initializeGrid = useCallback(() => {

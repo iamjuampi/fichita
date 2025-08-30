@@ -95,10 +95,35 @@ export function TetrisGame({ isActive, onPlay, onScoreUpdate }: TetrisGameProps)
   })
   const animationRef = useRef<number>()
   const lastDropTime = useRef<number>(0)
+  const audioRef = useRef<HTMLAudioElement | null>(null)
 
   const [score, setScore] = useState(0)
   const [lines, setLines] = useState(0)
   const [gameOver, setGameOver] = useState(false)
+
+  useEffect(() => {
+    audioRef.current = new Audio("https://audio.jukehost.co.uk/xWzqkPAuaSuh0W5QCe7qPJV8rArjKVBR")
+    audioRef.current.loop = true
+    audioRef.current.volume = 0.3
+
+    return () => {
+      if (audioRef.current) {
+        audioRef.current.pause()
+        audioRef.current = null
+      }
+    }
+  }, [])
+
+  useEffect(() => {
+    if (audioRef.current) {
+      if (isActive) {
+        audioRef.current.play().catch(console.error)
+      } else {
+        audioRef.current.pause()
+        audioRef.current.currentTime = 0
+      }
+    }
+  }, [isActive])
 
   const getRandomTetromino = (): TetrominoType => {
     const types = Object.keys(TETROMINOES) as TetrominoType[]

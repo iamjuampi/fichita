@@ -73,10 +73,35 @@ export function SpaceInvadersGame({ isActive, onPlay, onScoreUpdate }: SpaceInva
   })
   const animationRef = useRef<number>()
   const keysRef = useRef({ left: false, right: false, shoot: false })
+  const audioRef = useRef<HTMLAudioElement | null>(null)
 
   const [score, setScore] = useState(0)
   const [lives, setLives] = useState(3)
   const [gameOver, setGameOver] = useState(false)
+
+  useEffect(() => {
+    audioRef.current = new Audio("https://audio.jukehost.co.uk/R4hBA1oRwkoCEa7b5kL0auyywI2ClcQc")
+    audioRef.current.loop = true
+    audioRef.current.volume = 0.3
+
+    return () => {
+      if (audioRef.current) {
+        audioRef.current.pause()
+        audioRef.current = null
+      }
+    }
+  }, [])
+
+  useEffect(() => {
+    if (audioRef.current) {
+      if (isActive) {
+        audioRef.current.play().catch(console.error)
+      } else {
+        audioRef.current.pause()
+        audioRef.current.currentTime = 0
+      }
+    }
+  }, [isActive])
 
   const createAliens = () => {
     const aliens: Alien[] = []
