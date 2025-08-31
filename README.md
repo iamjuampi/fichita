@@ -16,7 +16,7 @@ Your project is live at:
 
 **[https://vercel.com/iamjuampis-projects/v0-tik-tok-minigame-app](https://vercel.com/iamjuampis-projects/v0-tik-tok-minigame-app)**
 
-## Build your app    
+## Build your app              
 
 Continue building your app on:
 
