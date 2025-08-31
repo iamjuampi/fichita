@@ -12,7 +12,7 @@ interface PongGameProps {
 }
 
 interface GameState {
-  ball: { x: number; y: number; dx: number; dy: number }
+  ball: { x: number; y: number; dx: number; dy: number; speed: number }
   playerPaddle: { y: number }
   aiPaddle: { y: number }
   score: { player: number; ai: number }
@@ -21,7 +21,7 @@ interface GameState {
 export function PongGame({ isActive, onPlay, onScoreUpdate }: PongGameProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const gameStateRef = useRef<GameState>({
-    ball: { x: 160, y: 240, dx: 4, dy: 3 },
+    ball: { x: 160, y: 240, dx: 4, dy: 3, speed: 1 }, // Added speed multiplier
     playerPaddle: { y: 200 },
     aiPaddle: { y: 200 },
     score: { player: 0, ai: 0 },
@@ -96,6 +96,7 @@ export function PongGame({ isActive, onPlay, onScoreUpdate }: PongGameProps) {
       y: CANVAS_HEIGHT / 2,
       dx: (Math.random() > 0.5 ? 1 : -1) * 4,
       dy: (Math.random() - 0.5) * 6,
+      speed: Math.max(1, state.ball.speed), // Maintain current speed when resetting
     }
   }, [])
 
@@ -107,9 +108,8 @@ export function PongGame({ isActive, onPlay, onScoreUpdate }: PongGameProps) {
     const ctx = canvas.getContext("2d")
     if (!ctx) return
 
-    // Update ball position
-    state.ball.x += state.ball.dx
-    state.ball.y += state.ball.dy
+    state.ball.x += state.ball.dx * state.ball.speed
+    state.ball.y += state.ball.dy * state.ball.speed
 
     // Ball collision with top/bottom walls
     if (state.ball.y <= BALL_SIZE / 2 || state.ball.y >= CANVAS_HEIGHT - BALL_SIZE / 2) {
@@ -132,6 +132,7 @@ export function PongGame({ isActive, onPlay, onScoreUpdate }: PongGameProps) {
       state.ball.dx = -state.ball.dx
       const hitPos = (state.ball.y - (state.playerPaddle.y + PADDLE_HEIGHT / 2)) / (PADDLE_HEIGHT / 2)
       state.ball.dy = hitPos * 5
+      state.ball.speed = Math.min(state.ball.speed + 0.1, 3) // Cap at 3x speed
     }
 
     // AI paddle collision (right side)
@@ -144,6 +145,7 @@ export function PongGame({ isActive, onPlay, onScoreUpdate }: PongGameProps) {
       state.ball.dx = -state.ball.dx
       const hitPos = (state.ball.y - (state.aiPaddle.y + PADDLE_HEIGHT / 2)) / (PADDLE_HEIGHT / 2)
       state.ball.dy = hitPos * 5
+      state.ball.speed = Math.min(state.ball.speed + 0.1, 3) // Cap at 3x speed
     }
 
     // Ball out of bounds
@@ -209,6 +211,7 @@ export function PongGame({ isActive, onPlay, onScoreUpdate }: PongGameProps) {
 
   const resetGame = useCallback(() => {
     gameStateRef.current.score = { player: 0, ai: 0 }
+    gameStateRef.current.ball.speed = 1 // Reset speed multiplier
     setScore(0)
     resetBall()
   }, [resetBall])

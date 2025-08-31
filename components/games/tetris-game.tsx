@@ -99,7 +99,6 @@ export function TetrisGame({ isActive, onPlay, onScoreUpdate }: TetrisGameProps)
   const audioRef = useRef<HTMLAudioElement | null>(null)
 
   const touchStartRef = useRef<{ x: number; y: number; time: number } | null>(null)
-  const holdTimeoutRef = useRef<NodeJS.Timeout | null>(null)
   const dropIntervalRef = useRef<NodeJS.Timeout | null>(null)
 
   const [score, setScore] = useState(0)
@@ -410,14 +409,6 @@ export function TetrisGame({ isActive, onPlay, onScoreUpdate }: TetrisGameProps)
       y: touch.clientY - rect.top,
       time: Date.now(),
     }
-
-    // Start hold timer for dropping pieces
-    holdTimeoutRef.current = setTimeout(() => {
-      // Start continuous dropping
-      dropIntervalRef.current = setInterval(() => {
-        movePiece(0, 1)
-      }, 50)
-    }, 200) // 200ms hold threshold
   }, [])
 
   const handleTouchMove = useCallback((e: React.TouchEvent) => {
@@ -429,11 +420,23 @@ export function TetrisGame({ isActive, onPlay, onScoreUpdate }: TetrisGameProps)
     if (!rect) return
 
     const currentX = touch.clientX - rect.left
+    const currentY = touch.clientY - rect.top
     const deltaX = currentX - touchStartRef.current.x
+    const deltaY = currentY - touchStartRef.current.y
     const absDeltaX = Math.abs(deltaX)
+    const absDeltaY = Math.abs(deltaY)
+
+    if (absDeltaY > 40 && absDeltaY > absDeltaX) {
+      if (deltaY > 0) {
+        // Swipe down - drop piece
+        dropPiece()
+        touchStartRef.current = null // Reset to prevent multiple drops
+        return
+      }
+    }
 
     // Swipe threshold for left/right movement
-    if (absDeltaX > 30) {
+    if (absDeltaX > 30 && absDeltaX > absDeltaY) {
       if (deltaX > 0) {
         movePiece(1, 0) // Move right
       } else {
@@ -447,37 +450,16 @@ export function TetrisGame({ isActive, onPlay, onScoreUpdate }: TetrisGameProps)
   const handleTouchEnd = useCallback((e: React.TouchEvent) => {
     e.preventDefault()
 
-    // Clear hold timers
-    if (holdTimeoutRef.current) {
-      clearTimeout(holdTimeoutRef.current)
-      holdTimeoutRef.current = null
-    }
-    if (dropIntervalRef.current) {
-      clearInterval(dropIntervalRef.current)
-      dropIntervalRef.current = null
-    }
-
     if (!touchStartRef.current) return
 
     const touchDuration = Date.now() - touchStartRef.current.time
 
-    // If it was a quick tap (not a hold), rotate the piece
+    // If it was a quick tap (not a swipe), rotate the piece
     if (touchDuration < 200) {
       rotatePieceAction()
     }
 
     touchStartRef.current = null
-  }, [])
-
-  useEffect(() => {
-    return () => {
-      if (holdTimeoutRef.current) {
-        clearTimeout(holdTimeoutRef.current)
-      }
-      if (dropIntervalRef.current) {
-        clearInterval(dropIntervalRef.current)
-      }
-    }
   }, [])
 
   if (!isActive) {
@@ -532,7 +514,9 @@ export function TetrisGame({ isActive, onPlay, onScoreUpdate }: TetrisGameProps)
               onTouchEnd={handleTouchEnd}
             />
             <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 bg-black/50 rounded-lg px-3 py-2 backdrop-blur-sm">
-              <p className="text-white text-xs text-center text-shadow-soft">Swipe: Move • Tap: Rotate • Hold: Drop</p>
+              <p className="text-white text-xs text-center text-shadow-soft">
+                Swipe: Move • Tap: Rotate • Swipe Down: Drop
+              </p>
             </div>
           </div>
         )}

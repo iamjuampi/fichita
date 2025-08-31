@@ -4,7 +4,6 @@ import type React from "react"
 
 import { useState, useEffect, useRef, useCallback } from "react"
 import { Button } from "@/components/ui/button"
-import { ChevronLeft, ChevronRight, Zap } from "lucide-react"
 
 interface SpaceInvadersGameProps {
   isActive: boolean
@@ -74,6 +73,8 @@ export function SpaceInvadersGame({ isActive, onPlay, onScoreUpdate }: SpaceInva
   const animationRef = useRef<number>()
   const keysRef = useRef({ left: false, right: false, shoot: false })
   const audioRef = useRef<HTMLAudioElement | null>(null)
+  const touchStartRef = useRef<{ x: number; y: number } | null>(null)
+  const lastTouchX = useRef<number>(0)
 
   const [score, setScore] = useState(0)
   const [lives, setLives] = useState(3)
@@ -174,26 +175,10 @@ export function SpaceInvadersGame({ isActive, onPlay, onScoreUpdate }: SpaceInva
     }
   }
 
-  const movePlayer = (direction: number) => {
-    const state = gameStateRef.current
-    const newX = state.player.x + direction * 3
-    if (newX >= 0 && newX <= CANVAS_WIDTH - PLAYER_WIDTH) {
-      state.player.x = newX
-    }
-  }
-
   const updateGame = useCallback(
     (currentTime: number) => {
       const state = gameStateRef.current
       if (!isActive || state.gameOver) return
-
-      // Move player
-      if (keysRef.current.left) movePlayer(-1)
-      if (keysRef.current.right) movePlayer(1)
-      if (keysRef.current.shoot) {
-        shoot()
-        keysRef.current.shoot = false // Single shot per press
-      }
 
       // Update bullets
       state.bullets = state.bullets.filter((bullet) => {
@@ -397,19 +382,39 @@ export function SpaceInvadersGame({ isActive, onPlay, onScoreUpdate }: SpaceInva
 
     const rect = canvas.getBoundingClientRect()
     const touchX = e.touches[0].clientX - rect.left
+    const touchY = e.touches[0].clientY - rect.top
 
-    if (touchX < CANVAS_WIDTH / 3) {
-      keysRef.current.left = true
-    } else if (touchX > (2 * CANVAS_WIDTH) / 3) {
-      keysRef.current.right = true
-    } else {
-      keysRef.current.shoot = true
+    touchStartRef.current = { x: touchX, y: touchY }
+    lastTouchX.current = touchX
+
+    if (touchY < CANVAS_HEIGHT * 0.7) {
+      shoot()
     }
   }
 
+  const handleTouchMove = (e: React.TouchEvent) => {
+    e.preventDefault()
+    if (!touchStartRef.current) return
+
+    const canvas = canvasRef.current
+    if (!canvas) return
+
+    const rect = canvas.getBoundingClientRect()
+    const touchX = e.touches[0].clientX - rect.left
+
+    const deltaX = touchX - lastTouchX.current
+    const state = gameStateRef.current
+    const newX = state.player.x + deltaX * 2 // Multiply for more responsive movement
+
+    if (newX >= 0 && newX <= CANVAS_WIDTH - PLAYER_WIDTH) {
+      state.player.x = newX
+    }
+
+    lastTouchX.current = touchX
+  }
+
   const handleTouchEnd = () => {
-    keysRef.current.left = false
-    keysRef.current.right = false
+    touchStartRef.current = null
   }
 
   useEffect(() => {
@@ -477,6 +482,7 @@ export function SpaceInvadersGame({ isActive, onPlay, onScoreUpdate }: SpaceInva
             height={CANVAS_HEIGHT}
             className="border-2 border-white/20 rounded-lg bg-background/20 backdrop-blur-sm"
             onTouchStart={handleTouchStart}
+            onTouchMove={handleTouchMove}
             onTouchEnd={handleTouchEnd}
             style={{ touchAction: "none" }}
           />
@@ -486,40 +492,9 @@ export function SpaceInvadersGame({ isActive, onPlay, onScoreUpdate }: SpaceInva
       {/* Controls */}
       {!gameOver && (
         <div className="absolute bottom-20 left-4 right-20 bg-white/10 rounded-lg p-4 backdrop-blur-sm">
-          <div className="grid grid-cols-3 gap-2 mb-2">
-            <Button
-              onTouchStart={() => (keysRef.current.left = true)}
-              onTouchEnd={() => (keysRef.current.left = false)}
-              onMouseDown={() => (keysRef.current.left = true)}
-              onMouseUp={() => (keysRef.current.left = false)}
-              variant="ghost"
-              size="sm"
-              className="text-white hover:bg-white/20 h-12"
-            >
-              <ChevronLeft className="h-6 w-6" />
-            </Button>
-            <Button
-              onTouchStart={() => (keysRef.current.shoot = true)}
-              onClick={() => (keysRef.current.shoot = true)}
-              variant="ghost"
-              size="sm"
-              className="text-white hover:bg-white/20 h-12"
-            >
-              <Zap className="h-6 w-6" />
-            </Button>
-            <Button
-              onTouchStart={() => (keysRef.current.right = true)}
-              onTouchEnd={() => (keysRef.current.right = false)}
-              onMouseDown={() => (keysRef.current.right = true)}
-              onMouseUp={() => (keysRef.current.right = false)}
-              variant="ghost"
-              size="sm"
-              className="text-white hover:bg-white/20 h-12"
-            >
-              <ChevronRight className="h-6 w-6" />
-            </Button>
-          </div>
-          <p className="text-white/80 text-center text-xs text-shadow-soft">Move Left • Shoot • Move Right</p>
+          <p className="text-white/80 text-center text-sm text-shadow-soft">
+            Move finger to control ship • Touch upper area to shoot
+          </p>
         </div>
       )}
     </div>

@@ -50,6 +50,7 @@ export function GameFeed() {
   const touchEndY = useRef<number>(0)
   const touchStartX = useRef<number>(0)
   const isInGameArea = useRef<boolean>(false)
+  const touchStartTime = useRef<number>(0)
 
   useEffect(() => {
     const gameChangeEvent = new CustomEvent("gameChanged", {
@@ -92,34 +93,42 @@ export function GameFeed() {
   }, [currentIndex])
 
   const handleTouchStart = (e: React.TouchEvent) => {
-    e.preventDefault()
     touchStartY.current = e.touches[0].clientY
     touchStartX.current = e.touches[0].clientX
+    touchStartTime.current = Date.now()
 
     const screenWidth = window.innerWidth
     const screenHeight = window.innerHeight
-    const gameAreaStart = screenWidth * 0.1
-    const gameAreaEnd = screenWidth * 0.9
-    const gameAreaTop = screenHeight * 0.1
-    const gameAreaBottom = screenHeight * 0.9
+
+    const gameAreaLeft = screenWidth * 0.15
+    const gameAreaRight = screenWidth * 0.85
+    const gameAreaTop = screenHeight * 0.15
+    const gameAreaBottom = screenHeight * 0.85
+
+    const touchX = e.touches[0].clientX
+    const touchY = e.touches[0].clientY
 
     isInGameArea.current =
-      touchStartX.current >= gameAreaStart &&
-      touchStartX.current <= gameAreaEnd &&
-      e.touches[0].clientY >= gameAreaTop &&
-      e.touches[0].clientY <= gameAreaBottom
+      touchX >= gameAreaLeft && touchX <= gameAreaRight && touchY >= gameAreaTop && touchY <= gameAreaBottom
+  }
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    if (!isInGameArea.current) {
+      e.preventDefault()
+    }
   }
 
   const handleTouchEnd = (e: React.TouchEvent) => {
+    if (isInGameArea.current) return
+
     e.preventDefault()
     e.stopPropagation()
 
-    if (isInGameArea.current) return
-
     touchEndY.current = e.changedTouches[0].clientY
     const deltaY = touchStartY.current - touchEndY.current
+    const touchDuration = Date.now() - touchStartTime.current
 
-    if (Math.abs(deltaY) > 20) {
+    if (Math.abs(deltaY) > 50 && touchDuration < 500) {
       if (deltaY > 0) {
         handleScroll("down")
       } else {
@@ -144,6 +153,7 @@ export function GameFeed() {
       className="relative h-dvh w-full overflow-hidden touch-none select-none"
       style={{ touchAction: "none" }}
       onTouchStart={handleTouchStart}
+      onTouchMove={handleTouchMove}
       onTouchEnd={handleTouchEnd}
       onWheel={handleWheel}
     >
