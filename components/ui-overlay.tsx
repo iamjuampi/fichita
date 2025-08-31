@@ -15,6 +15,7 @@ interface Game {
   likes: number
   comments: number
   shares: number
+  songName: string
 }
 
 interface Comment {
@@ -63,6 +64,7 @@ const GAMES = [
     title: "Pong",
     username: "$retrogamer",
     caption: "Classic paddle vs ball action! 🏓",
+    songName: "GoodStages - FICHITA",
     likes: 1234,
     comments: 89,
     shares: 45,
@@ -72,6 +74,7 @@ const GAMES = [
     title: "Tetris",
     username: "$blockmaster",
     caption: "Clear those lines! Perfect your stack 🧩",
+    songName: "BANGER - Fichita",
     likes: 2567,
     comments: 156,
     shares: 78,
@@ -81,6 +84,7 @@ const GAMES = [
     title: "Base Invaders",
     username: "$spaceshooter",
     caption: "Defend Earth from alien invasion! 👾",
+    songName: "Flush - Fichita",
     likes: 3421,
     comments: 234,
     shares: 123,
@@ -191,9 +195,7 @@ export function UIOverlay() {
     <div className="fixed inset-0 pointer-events-none z-30">
       {/* Top Bar with Profile Button */}
       <div className="absolute top-4 left-4 right-4 flex justify-between items-center pointer-events-auto">
-        <div className="flex items-center space-x-2">
-          <div className="text-white font-bold text-lg text-shadow-medium">FICHITA</div>
-        </div>
+        <div></div>
         <Button
           onClick={() => setShowProfile(true)}
           variant="ghost"
@@ -290,6 +292,10 @@ export function UIOverlay() {
             )}
           </div>
           <p className="text-sm leading-relaxed max-w-xs text-shadow-soft">{currentGame.caption}</p>
+          <div className="text-xs text-white/70 text-shadow-soft">
+            <span className="opacity-80">Now playing: </span>
+            <span className="font-medium">{currentGame.songName}</span>
+          </div>
           {fichitasEarned > 0 && (
             <div className="flex items-center space-x-2">
               <span className="text-xs text-accent font-semibold text-shadow-soft">+{fichitasEarned} $fichitas</span>

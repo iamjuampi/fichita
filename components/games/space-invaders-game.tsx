@@ -75,6 +75,8 @@ export function SpaceInvadersGame({ isActive, onPlay, onScoreUpdate }: SpaceInva
   const audioRef = useRef<HTMLAudioElement | null>(null)
   const touchStartRef = useRef<{ x: number; y: number } | null>(null)
   const lastTouchX = useRef<number>(0)
+  const isMouseDown = useRef<boolean>(false)
+  const lastMouseX = useRef<number>(0)
 
   const [score, setScore] = useState(0)
   const [lives, setLives] = useState(3)
@@ -417,6 +419,62 @@ export function SpaceInvadersGame({ isActive, onPlay, onScoreUpdate }: SpaceInva
     touchStartRef.current = null
   }
 
+  const handleMouseDown = (e: React.MouseEvent) => {
+    const canvas = canvasRef.current
+    if (!canvas) return
+
+    const rect = canvas.getBoundingClientRect()
+    const mouseX = e.clientX - rect.left
+    const mouseY = e.clientY - rect.top
+
+    isMouseDown.current = true
+    lastMouseX.current = mouseX
+
+    if (mouseY < CANVAS_HEIGHT * 0.7) {
+      shoot()
+    }
+  }
+
+  const handleMouseMove = (e: React.MouseEvent) => {
+    const canvas = canvasRef.current
+    if (!canvas) return
+
+    const rect = canvas.getBoundingClientRect()
+    const mouseX = e.clientX - rect.left
+
+    if (isMouseDown.current) {
+      const deltaX = mouseX - lastMouseX.current
+      const state = gameStateRef.current
+      const newX = state.player.x + deltaX * 2
+
+      if (newX >= 0 && newX <= CANVAS_WIDTH - PLAYER_WIDTH) {
+        state.player.x = newX
+      }
+    }
+
+    lastMouseX.current = mouseX
+  }
+
+  const handleMouseUp = () => {
+    isMouseDown.current = false
+  }
+
+  const handleMouseLeave = () => {
+    isMouseDown.current = false
+  }
+
+  const handleClick = (e: React.MouseEvent) => {
+    const canvas = canvasRef.current
+    if (!canvas) return
+
+    const rect = canvas.getBoundingClientRect()
+    const mouseY = e.clientY - rect.top
+
+    if (mouseY < CANVAS_HEIGHT * 0.7) {
+      shoot()
+    }
+  }
+
   useEffect(() => {
     if (isActive && !gameOver) {
       if (gameStateRef.current.aliens.length === 0) {
@@ -484,6 +542,11 @@ export function SpaceInvadersGame({ isActive, onPlay, onScoreUpdate }: SpaceInva
             onTouchStart={handleTouchStart}
             onTouchMove={handleTouchMove}
             onTouchEnd={handleTouchEnd}
+            onMouseDown={handleMouseDown}
+            onMouseMove={handleMouseMove}
+            onMouseUp={handleMouseUp}
+            onMouseLeave={handleMouseLeave}
+            onClick={handleClick}
             style={{ touchAction: "none" }}
           />
         )}
@@ -494,6 +557,8 @@ export function SpaceInvadersGame({ isActive, onPlay, onScoreUpdate }: SpaceInva
         <div className="absolute bottom-20 left-4 right-20 bg-white/10 rounded-lg p-4 backdrop-blur-sm">
           <p className="text-white/80 text-center text-sm text-shadow-soft">
             Move finger to control ship • Touch upper area to shoot
+            <br />
+            <span className="text-xs opacity-60">Mouse: Drag to move • Click to shoot</span>
           </p>
         </div>
       )}

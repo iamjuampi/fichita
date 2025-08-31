@@ -100,6 +100,7 @@ export function TetrisGame({ isActive, onPlay, onScoreUpdate }: TetrisGameProps)
 
   const touchStartRef = useRef<{ x: number; y: number; time: number } | null>(null)
   const dropIntervalRef = useRef<NodeJS.Timeout | null>(null)
+  const mouseStartRef = useRef<{ x: number; y: number; time: number } | null>(null)
 
   const [score, setScore] = useState(0)
   const [lines, setLines] = useState(0)
@@ -462,6 +463,70 @@ export function TetrisGame({ isActive, onPlay, onScoreUpdate }: TetrisGameProps)
     touchStartRef.current = null
   }, [])
 
+  const handleMouseDown = useCallback((e: React.MouseEvent) => {
+    const rect = canvasRef.current?.getBoundingClientRect()
+    if (!rect) return
+
+    mouseStartRef.current = {
+      x: e.clientX - rect.left,
+      y: e.clientY - rect.top,
+      time: Date.now(),
+    }
+  }, [])
+
+  const handleMouseMove = useCallback((e: React.MouseEvent) => {
+    if (!mouseStartRef.current) return
+
+    const rect = canvasRef.current?.getBoundingClientRect()
+    if (!rect) return
+
+    const currentX = e.clientX - rect.left
+    const currentY = e.clientY - rect.top
+    const deltaX = currentX - mouseStartRef.current.x
+    const deltaY = currentY - mouseStartRef.current.y
+    const absDeltaX = Math.abs(deltaX)
+    const absDeltaY = Math.abs(deltaY)
+
+    if (absDeltaY > 40 && absDeltaY > absDeltaX) {
+      if (deltaY > 0) {
+        // Mouse drag down - drop piece
+        dropPiece()
+        mouseStartRef.current = null
+        return
+      }
+    }
+
+    // Mouse drag threshold for left/right movement
+    if (absDeltaX > 30 && absDeltaX > absDeltaY) {
+      if (deltaX > 0) {
+        movePiece(1, 0) // Move right
+      } else {
+        movePiece(-1, 0) // Move left
+      }
+      mouseStartRef.current.x = currentX
+    }
+  }, [])
+
+  const handleMouseUp = useCallback(() => {
+    if (!mouseStartRef.current) return
+
+    const mouseDuration = Date.now() - mouseStartRef.current.time
+
+    // If it was a quick click (not a drag), rotate the piece
+    if (mouseDuration < 200) {
+      rotatePieceAction()
+    }
+
+    mouseStartRef.current = null
+  }, [])
+
+  const handleWheel = useCallback((e: React.WheelEvent) => {
+    e.preventDefault()
+    if (e.deltaY > 0) {
+      dropPiece()
+    }
+  }, [])
+
   if (!isActive) {
     return (
       <div className="fixed inset-0 h-screen w-screen bg-gradient-to-b from-yellow-400 to-green-600 flex items-center justify-center">
@@ -512,10 +577,16 @@ export function TetrisGame({ isActive, onPlay, onScoreUpdate }: TetrisGameProps)
               onTouchStart={handleTouchStart}
               onTouchMove={handleTouchMove}
               onTouchEnd={handleTouchEnd}
+              onMouseDown={handleMouseDown}
+              onMouseMove={handleMouseMove}
+              onMouseUp={handleMouseUp}
+              onWheel={handleWheel}
             />
             <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 bg-black/50 rounded-lg px-3 py-2 backdrop-blur-sm">
               <p className="text-white text-xs text-center text-shadow-soft">
-                Swipe: Move • Tap: Rotate • Swipe Down: Drop
+                Touch: Swipe Move • Tap Rotate • Swipe Down Drop
+                <br />
+                <span className="opacity-60">Mouse: Drag Move • Click Rotate • Wheel Drop</span>
               </p>
             </div>
           </div>

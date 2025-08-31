@@ -29,6 +29,7 @@ export function PongGame({ isActive, onPlay, onScoreUpdate }: PongGameProps) {
   const animationRef = useRef<number>()
   const touchStartY = useRef<number>(0)
   const audioRef = useRef<HTMLAudioElement | null>(null)
+  const isMouseDown = useRef<boolean>(false)
 
   const [score, setScore] = useState(0)
 
@@ -235,6 +236,35 @@ export function PongGame({ isActive, onPlay, onScoreUpdate }: PongGameProps) {
     )
   }
 
+  const handleMouseDown = (e: React.MouseEvent) => {
+    isMouseDown.current = true
+    handleMouseMove(e)
+  }
+
+  const handleMouseMove = (e: React.MouseEvent) => {
+    if (!isMouseDown.current) return
+
+    const canvas = canvasRef.current
+    if (!canvas) return
+
+    const rect = canvas.getBoundingClientRect()
+    const mouseY = e.clientY - rect.top
+    const canvasY = (mouseY / rect.height) * CANVAS_HEIGHT
+
+    gameStateRef.current.playerPaddle.y = Math.max(
+      0,
+      Math.min(canvasY - PADDLE_HEIGHT / 2, CANVAS_HEIGHT - PADDLE_HEIGHT),
+    )
+  }
+
+  const handleMouseUp = () => {
+    isMouseDown.current = false
+  }
+
+  const handleMouseLeave = () => {
+    isMouseDown.current = false
+  }
+
   useEffect(() => {
     if (isActive) {
       resetGame()
@@ -283,6 +313,10 @@ export function PongGame({ isActive, onPlay, onScoreUpdate }: PongGameProps) {
           className="border-2 border-white/20 rounded-lg bg-background/20 backdrop-blur-sm"
           onTouchStart={handleTouchStart}
           onTouchMove={handleTouchMove}
+          onMouseDown={handleMouseDown}
+          onMouseMove={handleMouseMove}
+          onMouseUp={handleMouseUp}
+          onMouseLeave={handleMouseLeave}
           style={{ touchAction: "none" }}
         />
       </div>
@@ -292,7 +326,7 @@ export function PongGame({ isActive, onPlay, onScoreUpdate }: PongGameProps) {
         <p className="text-white/80 text-center text-sm text-shadow-soft">
           Touch and drag to move your paddle
           <br />
-          <span className="text-xs opacity-60">First to score wins!</span>
+          <span className="text-xs opacity-60">Mouse: Click and drag • First to score wins!</span>
         </p>
       </div>
     </div>
