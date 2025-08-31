@@ -433,7 +433,7 @@ export function SpaceInvadersGame({ isActive, onPlay, onScoreUpdate }: SpaceInva
 
   if (!isActive) {
     return (
-      <div className="h-full w-full bg-gradient-to-br from-green-600 to-lime-500 flex items-center justify-center">
+      <div className="fixed inset-0 h-screen w-screen bg-gradient-to-br from-green-600 to-lime-500 flex items-center justify-center">
         <div className="text-center text-white">
           <div className="text-8xl mb-4">👾</div>
           <h2 className="text-4xl font-bold mb-2">Base Invaders</h2>
@@ -444,10 +444,10 @@ export function SpaceInvadersGame({ isActive, onPlay, onScoreUpdate }: SpaceInva
   }
 
   return (
-    <div className="h-full w-full bg-gradient-to-br from-green-600 to-lime-500 flex flex-col items-center justify-center relative">
+    <div className="fixed inset-0 h-screen w-screen bg-gradient-to-br from-green-600 to-lime-500 flex flex-col items-center justify-center relative">
       {/* Game UI */}
       <div className="absolute top-8 left-4 right-4 flex justify-between items-center text-white z-10">
-        <div className="text-sm font-bold">
+        <div className="text-sm font-bold text-shadow-medium">
           <div>Score: {score}</div>
           <div>Lives: {lives}</div>
         </div>
@@ -461,8 +461,8 @@ export function SpaceInvadersGame({ isActive, onPlay, onScoreUpdate }: SpaceInva
         {gameOver ? (
           <div className="text-center text-white">
             <div className="text-6xl mb-4">👾</div>
-            <h2 className="text-2xl font-bold mb-4">Game Over!</h2>
-            <p className="text-lg mb-2">Final Score: {score}</p>
+            <h2 className="text-2xl font-bold mb-4 text-shadow-strong">Game Over!</h2>
+            <p className="text-lg mb-2 text-shadow-medium">Final Score: {score}</p>
             <Button
               onClick={resetGame}
               className="bg-accent hover:bg-accent/90 text-accent-foreground px-8 py-3 text-lg"
@@ -519,7 +519,7 @@ export function SpaceInvadersGame({ isActive, onPlay, onScoreUpdate }: SpaceInva
               <ChevronRight className="h-6 w-6" />
             </Button>
           </div>
-          <p className="text-white/80 text-center text-xs">Move Left • Shoot • Move Right</p>
+          <p className="text-white/80 text-center text-xs text-shadow-soft">Move Left • Shoot • Move Right</p>
         </div>
       )}
     </div>

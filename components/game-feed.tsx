@@ -34,15 +34,6 @@ const GAMES = [
     comments: 234,
     shares: 123,
   },
-  {
-    id: "jewels",
-    title: "Jewels",
-    username: "$gemmaster",
-    caption: "Match 3 gems and create cascading combos! 💎",
-    likes: 1890,
-    comments: 67,
-    shares: 34,
-  },
 ]
 
 const INFINITE_GAMES = Array.from({ length: GAMES.length * 100 }, (_, index) => ({
@@ -53,6 +44,7 @@ const INFINITE_GAMES = Array.from({ length: GAMES.length * 100 }, (_, index) => 
 export function GameFeed() {
   const [currentIndex, setCurrentIndex] = useState(GAMES.length * 50)
   const [isScrolling, setIsScrolling] = useState(false)
+  const [scrollPosition, setScrollPosition] = useState(GAMES.length * 50 * 100)
   const containerRef = useRef<HTMLDivElement>(null)
   const touchStartY = useRef<number>(0)
   const touchEndY = useRef<number>(0)
@@ -67,26 +59,28 @@ export function GameFeed() {
 
       if (direction === "down") {
         setCurrentIndex((prev) => prev + 1)
+        setScrollPosition((prev) => prev + 100)
       } else {
         setCurrentIndex((prev) => prev - 1)
+        setScrollPosition((prev) => prev - 100)
       }
 
-      setTimeout(() => setIsScrolling(false), 300)
+      setTimeout(() => setIsScrolling(false), 150)
     },
     [isScrolling],
   )
 
   useEffect(() => {
     if (currentIndex >= INFINITE_GAMES.length - GAMES.length) {
-      // Near the end, reset to middle
       setTimeout(() => {
         setCurrentIndex(GAMES.length * 50)
-      }, 600)
+        setScrollPosition(GAMES.length * 50 * 100)
+      }, 300)
     } else if (currentIndex < GAMES.length) {
-      // Near the beginning, reset to middle
       setTimeout(() => {
         setCurrentIndex(GAMES.length * 50)
-      }, 600)
+        setScrollPosition(GAMES.length * 50 * 100)
+      }, 300)
     }
   }, [currentIndex])
 
@@ -94,7 +88,6 @@ export function GameFeed() {
     touchStartY.current = e.touches[0].clientY
     touchStartX.current = e.touches[0].clientX
 
-    // Detect if touch started in game area (center 80% of screen width)
     const screenWidth = window.innerWidth
     const gameAreaStart = screenWidth * 0.1
     const gameAreaEnd = screenWidth * 0.9
@@ -108,8 +101,7 @@ export function GameFeed() {
     touchEndY.current = e.changedTouches[0].clientY
     const deltaY = touchStartY.current - touchEndY.current
 
-    if (Math.abs(deltaY) > 50) {
-      // Minimum swipe distance
+    if (Math.abs(deltaY) > 30) {
       if (deltaY > 0) {
         handleScroll("down")
       } else {
@@ -136,14 +128,14 @@ export function GameFeed() {
       onWheel={handleWheel}
     >
       <div
-        className="flex flex-col transition-transform duration-300 ease-in-out"
+        className="flex flex-col transition-transform duration-200 ease-out"
         style={{
-          transform: `translateY(-${currentIndex * 100}vh)`,
+          transform: `translateY(-${scrollPosition}vh)`,
           height: `${INFINITE_GAMES.length * 100}vh`,
         }}
       >
         {INFINITE_GAMES.map((game, index) => (
-          <div key={game.uniqueId} className="h-screen w-full flex-shrink-0">
+          <div key={game.uniqueId} className="h-screen w-full flex-shrink-0 relative">
             <GameCard game={game} isActive={index === currentIndex} />
           </div>
         ))}

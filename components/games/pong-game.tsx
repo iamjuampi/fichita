@@ -251,7 +251,7 @@ export function PongGame({ isActive, onPlay, onScoreUpdate }: PongGameProps) {
 
   if (!isActive) {
     return (
-      <div className="h-full w-full bg-gradient-to-br from-lime-400 to-yellow-500 flex items-center justify-center">
+      <div className="fixed inset-0 h-screen w-screen bg-gradient-to-br from-lime-400 to-yellow-500 flex items-center justify-center">
         <div className="text-center text-white">
           <div className="text-8xl mb-4">🏓</div>
           <h2 className="text-4xl font-bold mb-2">Pong</h2>
@@ -262,7 +262,7 @@ export function PongGame({ isActive, onPlay, onScoreUpdate }: PongGameProps) {
   }
 
   return (
-    <div className="h-full w-full bg-gradient-to-br from-lime-400 to-yellow-500 flex flex-col items-center justify-center relative">
+    <div className="fixed inset-0 h-screen w-screen bg-gradient-to-br from-lime-400 to-yellow-500 flex flex-col items-center justify-center relative">
       {/* Game UI */}
       <div className="absolute top-8 left-4 right-4 flex justify-between items-center text-white z-10">
         <div className="text-lg font-bold text-shadow-medium">Score: {score}</div>

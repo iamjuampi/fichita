@@ -5,7 +5,6 @@ import { Button } from "@/components/ui/button"
 import { PongGame } from "./games/pong-game"
 import { TetrisGame } from "./games/tetris-game"
 import { SpaceInvadersGame } from "./games/space-invaders-game"
-import { JewelsGame } from "./games/jewels-game"
 
 interface PlaceholderGameProps {
   gameId: string
@@ -22,7 +21,7 @@ export function PlaceholderGame({ gameId, isActive, onPlay }: PlaceholderGamePro
       return
     }
 
-    if (gameId !== "pong" && gameId !== "tetris" && gameId !== "space-invaders" && gameId !== "jewels") {
+    if (gameId !== "pong" && gameId !== "tetris" && gameId !== "space-invaders") {
       const interval = setInterval(() => {
         setScore((prev) => prev + Math.floor(Math.random() * 10) + 1)
       }, 1000)
@@ -45,10 +44,6 @@ export function PlaceholderGame({ gameId, isActive, onPlay }: PlaceholderGamePro
 
   if (gameId === "space-invaders") {
     return <SpaceInvadersGame isActive={isActive} onPlay={onPlay} onScoreUpdate={handleScoreUpdate} />
-  }
-
-  if (gameId === "jewels") {
-    return <JewelsGame isActive={isActive} onPlay={onPlay} onScoreUpdate={handleScoreUpdate} />
   }
 
   const getGameContent = () => {
@@ -74,13 +69,6 @@ export function PlaceholderGame({ gameId, isActive, onPlay }: PlaceholderGamePro
           color: "from-green-500 to-emerald-500",
           emoji: "👾",
         }
-      case "jewels":
-        return {
-          title: "Jewels",
-          description: "Match 3 gems",
-          color: "from-purple-500 to-pink-500",
-          emoji: "💎",
-        }
       default:
         return {
           title: "Game",
@@ -95,7 +83,9 @@ export function PlaceholderGame({ gameId, isActive, onPlay }: PlaceholderGamePro
 
   if (!isActive) {
     return (
-      <div className={`h-full w-full bg-gradient-to-br ${gameContent.color} flex items-center justify-center`}>
+      <div
+        className={`fixed inset-0 h-screen w-screen bg-gradient-to-br ${gameContent.color} flex items-center justify-center`}
+      >
         <div className="text-center text-white">
           <div className="text-8xl mb-4">{gameContent.emoji}</div>
           <h2 className="text-4xl font-bold mb-2">{gameContent.title}</h2>
@@ -107,7 +97,7 @@ export function PlaceholderGame({ gameId, isActive, onPlay }: PlaceholderGamePro
 
   return (
     <div
-      className={`h-full w-full bg-gradient-to-br ${gameContent.color} flex flex-col items-center justify-center relative`}
+      className={`fixed inset-0 h-screen w-screen bg-gradient-to-br ${gameContent.color} flex flex-col items-center justify-center relative`}
     >
       <div className="absolute top-8 left-4 right-4 flex justify-between items-center text-white">
         <div className="text-lg font-bold">Score: {score}</div>
