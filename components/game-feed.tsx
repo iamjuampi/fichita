@@ -1,9 +1,9 @@
-"use client"
+"use client";
 
-import type React from "react"
+import type React from "react";
 
-import { useState, useRef, useCallback, useEffect } from "react"
-import { GameCard } from "./game-card"
+import { useState, useRef, useCallback, useEffect } from "react";
+import { GameCard } from "./game-card";
 
 // Placeholder games data - will be replaced with actual games later
 const GAMES = [
@@ -34,118 +34,126 @@ const GAMES = [
     comments: 234,
     shares: 123,
   },
-]
+];
 
-const INFINITE_GAMES = Array.from({ length: GAMES.length * 100 }, (_, index) => ({
-  ...GAMES[index % GAMES.length],
-  uniqueId: `${GAMES[index % GAMES.length].id}-${Math.floor(index / GAMES.length)}`,
-}))
+const INFINITE_GAMES = Array.from(
+  { length: GAMES.length * 100 },
+  (_, index) => ({
+    ...GAMES[index % GAMES.length],
+    uniqueId: `${GAMES[index % GAMES.length].id}-${Math.floor(
+      index / GAMES.length
+    )}`,
+  })
+);
 
 export function GameFeed() {
-  const [currentIndex, setCurrentIndex] = useState(GAMES.length * 50)
-  const [isScrolling, setIsScrolling] = useState(false)
-  const [scrollPosition, setScrollPosition] = useState(GAMES.length * 50 * 100)
-  const containerRef = useRef<HTMLDivElement>(null)
-  const touchStartY = useRef<number>(0)
-  const touchEndY = useRef<number>(0)
-  const touchStartX = useRef<number>(0)
-  const isInGameArea = useRef<boolean>(false)
-  const touchStartTime = useRef<number>(0)
+  const [currentIndex, setCurrentIndex] = useState(GAMES.length * 50);
+  const [isScrolling, setIsScrolling] = useState(false);
+  const [scrollPosition, setScrollPosition] = useState(GAMES.length * 50 * 100);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const touchStartY = useRef<number>(0);
+  const touchEndY = useRef<number>(0);
+  const touchStartX = useRef<number>(0);
+  const isInGameArea = useRef<boolean>(false);
+  const touchStartTime = useRef<number>(0);
 
   useEffect(() => {
     const gameChangeEvent = new CustomEvent("gameChanged", {
       detail: { gameIndex: currentIndex },
-    })
-    window.dispatchEvent(gameChangeEvent)
-  }, [currentIndex])
+    });
+    window.dispatchEvent(gameChangeEvent);
+  }, [currentIndex]);
 
   const handleScroll = useCallback(
     (direction: "up" | "down") => {
-      if (isScrolling) return
+      if (isScrolling) return;
 
-      setIsScrolling(true)
+      setIsScrolling(true);
 
       if (direction === "down") {
-        setCurrentIndex((prev) => prev + 1)
-        setScrollPosition((prev) => prev + 100)
+        setCurrentIndex((prev) => prev + 1);
+        setScrollPosition((prev) => prev + 100);
       } else {
-        setCurrentIndex((prev) => prev - 1)
-        setScrollPosition((prev) => prev - 100)
+        setCurrentIndex((prev) => prev - 1);
+        setScrollPosition((prev) => prev - 100);
       }
 
-      setTimeout(() => setIsScrolling(false), 150)
+      setTimeout(() => setIsScrolling(false), 150);
     },
-    [isScrolling],
-  )
+    [isScrolling]
+  );
 
   useEffect(() => {
     if (currentIndex >= INFINITE_GAMES.length - GAMES.length) {
       setTimeout(() => {
-        setCurrentIndex(GAMES.length * 50)
-        setScrollPosition(GAMES.length * 50 * 100)
-      }, 300)
+        setCurrentIndex(GAMES.length * 50);
+        setScrollPosition(GAMES.length * 50 * 100);
+      }, 300);
     } else if (currentIndex < GAMES.length) {
       setTimeout(() => {
-        setCurrentIndex(GAMES.length * 50)
-        setScrollPosition(GAMES.length * 50 * 100)
-      }, 300)
+        setCurrentIndex(GAMES.length * 50);
+        setScrollPosition(GAMES.length * 50 * 100);
+      }, 300);
     }
-  }, [currentIndex])
+  }, [currentIndex]);
 
   const handleTouchStart = (e: React.TouchEvent) => {
-    touchStartY.current = e.touches[0].clientY
-    touchStartX.current = e.touches[0].clientX
-    touchStartTime.current = Date.now()
+    touchStartY.current = e.touches[0].clientY;
+    touchStartX.current = e.touches[0].clientX;
+    touchStartTime.current = Date.now();
 
-    const screenWidth = window.innerWidth
-    const screenHeight = window.innerHeight
+    const screenWidth = window.innerWidth;
+    const screenHeight = window.innerHeight;
 
-    const gameAreaLeft = screenWidth * 0.15
-    const gameAreaRight = screenWidth * 0.85
-    const gameAreaTop = screenHeight * 0.15
-    const gameAreaBottom = screenHeight * 0.85
+    const gameAreaLeft = screenWidth * 0.15;
+    const gameAreaRight = screenWidth * 0.85;
+    const gameAreaTop = screenHeight * 0.15;
+    const gameAreaBottom = screenHeight * 0.85;
 
-    const touchX = e.touches[0].clientX
-    const touchY = e.touches[0].clientY
+    const touchX = e.touches[0].clientX;
+    const touchY = e.touches[0].clientY;
 
     isInGameArea.current =
-      touchX >= gameAreaLeft && touchX <= gameAreaRight && touchY >= gameAreaTop && touchY <= gameAreaBottom
-  }
+      touchX >= gameAreaLeft &&
+      touchX <= gameAreaRight &&
+      touchY >= gameAreaTop &&
+      touchY <= gameAreaBottom;
+  };
 
   const handleTouchMove = (e: React.TouchEvent) => {
     if (!isInGameArea.current) {
-      e.preventDefault()
+      e.preventDefault();
     }
-  }
+  };
 
   const handleTouchEnd = (e: React.TouchEvent) => {
-    if (isInGameArea.current) return
+    if (isInGameArea.current) return;
 
-    e.preventDefault()
-    e.stopPropagation()
+    e.preventDefault();
+    e.stopPropagation();
 
-    touchEndY.current = e.changedTouches[0].clientY
-    const deltaY = touchStartY.current - touchEndY.current
-    const touchDuration = Date.now() - touchStartTime.current
+    touchEndY.current = e.changedTouches[0].clientY;
+    const deltaY = touchStartY.current - touchEndY.current;
+    const touchDuration = Date.now() - touchStartTime.current;
 
     if (Math.abs(deltaY) > 50 && touchDuration < 500) {
       if (deltaY > 0) {
-        handleScroll("down")
+        handleScroll("down");
       } else {
-        handleScroll("up")
+        handleScroll("up");
       }
     }
-  }
+  };
 
   const handleWheel = (e: React.WheelEvent) => {
-    e.preventDefault()
-    e.stopPropagation()
+    e.preventDefault();
+    e.stopPropagation();
     if (e.deltaY > 0) {
-      handleScroll("down")
+      handleScroll("down");
     } else {
-      handleScroll("up")
+      handleScroll("up");
     }
-  }
+  };
 
   return (
     <div
@@ -165,11 +173,14 @@ export function GameFeed() {
         }}
       >
         {INFINITE_GAMES.map((game, index) => (
-          <div key={game.uniqueId} className="h-dvh w-full flex-shrink-0 relative">
+          <div
+            key={game.uniqueId}
+            className="h-dvh w-full flex-shrink-0 relative"
+          >
             <GameCard game={game} isActive={index === currentIndex} />
           </div>
         ))}
       </div>
     </div>
-  )
+  );
 }

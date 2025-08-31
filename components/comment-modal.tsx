@@ -1,61 +1,72 @@
-"use client"
+"use client";
 
-import type React from "react"
+import type React from "react";
 
-import { useState } from "react"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { ScrollArea } from "@/components/ui/scroll-area"
-import { X, Heart, Send } from "lucide-react"
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { X, Heart, Send } from "lucide-react";
 
 interface Comment {
-  id: string
-  username: string
-  text: string
-  likes: number
-  timestamp: string
-  liked: boolean
+  id: string;
+  username: string;
+  text: string;
+  likes: number;
+  timestamp: string;
+  liked: boolean;
 }
 
 interface CommentModalProps {
-  isOpen: boolean
-  onClose: () => void
-  gameTitle: string
-  comments: Comment[]
-  onAddComment: (text: string) => void
-  onLikeComment: (commentId: string) => void
+  isOpen: boolean;
+  onClose: () => void;
+  gameTitle: string;
+  comments: Comment[];
+  onAddComment: (text: string) => void;
+  onLikeComment: (commentId: string) => void;
 }
 
-export function CommentModal({ isOpen, onClose, gameTitle, comments, onAddComment, onLikeComment }: CommentModalProps) {
-  const [newComment, setNewComment] = useState("")
+export function CommentModal({
+  isOpen,
+  onClose,
+  gameTitle,
+  comments,
+  onAddComment,
+  onLikeComment,
+}: CommentModalProps) {
+  const [newComment, setNewComment] = useState("");
 
   const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
+    e.preventDefault();
     if (newComment.trim()) {
-      onAddComment(newComment.trim())
-      setNewComment("")
+      onAddComment(newComment.trim());
+      setNewComment("");
     }
-  }
+  };
 
   const formatTimeAgo = (timestamp: string) => {
-    const now = new Date()
-    const commentTime = new Date(timestamp)
-    const diffInMinutes = Math.floor((now.getTime() - commentTime.getTime()) / (1000 * 60))
+    const now = new Date();
+    const commentTime = new Date(timestamp);
+    const diffInMinutes = Math.floor(
+      (now.getTime() - commentTime.getTime()) / (1000 * 60)
+    );
 
-    if (diffInMinutes < 1) return "now"
-    if (diffInMinutes < 60) return `${diffInMinutes}m`
-    if (diffInMinutes < 1440) return `${Math.floor(diffInMinutes / 60)}h`
-    return `${Math.floor(diffInMinutes / 1440)}d`
-  }
+    if (diffInMinutes < 1) return "now";
+    if (diffInMinutes < 60) return `${diffInMinutes}m`;
+    if (diffInMinutes < 1440) return `${Math.floor(diffInMinutes / 60)}h`;
+    return `${Math.floor(diffInMinutes / 1440)}d`;
+  };
 
-  if (!isOpen) return null
+  if (!isOpen) return null;
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-end justify-center z-50">
       <div className="bg-card w-full max-w-md h-[70vh] rounded-t-2xl flex flex-col">
         {/* Header */}
         <div className="flex items-center justify-between p-4 border-b border-border">
-          <h3 className="text-lg font-semibold text-card-foreground">Comments</h3>
+          <h3 className="text-lg font-semibold text-card-foreground">
+            Comments
+          </h3>
           <Button variant="ghost" size="sm" onClick={onClose}>
             <X className="h-5 w-5" />
           </Button>
@@ -67,7 +78,9 @@ export function CommentModal({ isOpen, onClose, gameTitle, comments, onAddCommen
             {comments.length === 0 ? (
               <div className="text-center py-8">
                 <p className="text-muted-foreground">No comments yet</p>
-                <p className="text-sm text-muted-foreground mt-1">Be the first to comment!</p>
+                <p className="text-sm text-muted-foreground mt-1">
+                  Be the first to comment!
+                </p>
               </div>
             ) : (
               comments.map((comment) => (
@@ -79,10 +92,16 @@ export function CommentModal({ isOpen, onClose, gameTitle, comments, onAddCommen
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center space-x-2">
-                      <span className="font-semibold text-sm text-card-foreground">{comment.username}</span>
-                      <span className="text-xs text-muted-foreground">{formatTimeAgo(comment.timestamp)}</span>
+                      <span className="font-semibold text-sm text-card-foreground">
+                        {comment.username}
+                      </span>
+                      <span className="text-xs text-muted-foreground">
+                        {formatTimeAgo(comment.timestamp)}
+                      </span>
                     </div>
-                    <p className="text-sm text-card-foreground mt-1">{comment.text}</p>
+                    <p className="text-sm text-card-foreground mt-1">
+                      {comment.text}
+                    </p>
                     <div className="flex items-center space-x-4 mt-2">
                       <Button
                         variant="ghost"
@@ -94,7 +113,11 @@ export function CommentModal({ isOpen, onClose, gameTitle, comments, onAddCommen
                             : "text-muted-foreground hover:text-card-foreground"
                         }`}
                       >
-                        <Heart className={`h-3 w-3 mr-1 ${comment.liked ? "fill-current" : ""}`} />
+                        <Heart
+                          className={`h-3 w-3 mr-1 ${
+                            comment.liked ? "fill-current" : ""
+                          }`}
+                        />
                         <span className="text-xs">{comment.likes}</span>
                       </Button>
                     </div>
@@ -122,5 +145,5 @@ export function CommentModal({ isOpen, onClose, gameTitle, comments, onAddCommen
         </div>
       </div>
     </div>
-  )
+  );
 }

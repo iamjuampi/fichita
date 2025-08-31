@@ -1,14 +1,14 @@
-"use client"
+"use client";
 
-import type React from "react"
+import type React from "react";
 
-import { useState, useEffect, useRef, useCallback } from "react"
-import { Button } from "@/components/ui/button"
+import { useState, useEffect, useRef, useCallback } from "react";
+import { Button } from "@/components/ui/button";
 
 interface TetrisGameProps {
-  isActive: boolean
-  onPlay: () => void
-  onScoreUpdate: (score: number) => void
+  isActive: boolean;
+  onPlay: () => void;
+  onScoreUpdate: (score: number) => void;
 }
 
 // Tetromino shapes
@@ -48,7 +48,7 @@ const TETROMINOES = {
     [1, 1, 1],
     [0, 0, 0],
   ],
-}
+};
 
 const COLORS = {
   I: "#00f5ff",
@@ -58,31 +58,35 @@ const COLORS = {
   Z: "#ff0000",
   J: "#0000ff",
   L: "#ff8000",
-}
+};
 
-type TetrominoType = keyof typeof TETROMINOES
+type TetrominoType = keyof typeof TETROMINOES;
 
 interface GameState {
-  grid: number[][]
+  grid: number[][];
   currentPiece: {
-    shape: number[][]
-    x: number
-    y: number
-    type: TetrominoType
-  } | null
-  nextPiece: TetrominoType
-  score: number
-  lines: number
-  level: number
-  gameOver: boolean
+    shape: number[][];
+    x: number;
+    y: number;
+    type: TetrominoType;
+  } | null;
+  nextPiece: TetrominoType;
+  score: number;
+  lines: number;
+  level: number;
+  gameOver: boolean;
 }
 
-const GRID_WIDTH = 10
-const GRID_HEIGHT = 20
-const CELL_SIZE = 24
+const GRID_WIDTH = 10;
+const GRID_HEIGHT = 20;
+const CELL_SIZE = 24;
 
-export function TetrisGame({ isActive, onPlay, onScoreUpdate }: TetrisGameProps) {
-  const canvasRef = useRef<HTMLCanvasElement>(null)
+export function TetrisGame({
+  isActive,
+  onPlay,
+  onScoreUpdate,
+}: TetrisGameProps) {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
   const gameStateRef = useRef<GameState>({
     grid: Array(GRID_HEIGHT)
       .fill(null)
@@ -93,439 +97,458 @@ export function TetrisGame({ isActive, onPlay, onScoreUpdate }: TetrisGameProps)
     lines: 0,
     level: 1,
     gameOver: false,
-  })
-  const animationRef = useRef<number>()
-  const lastDropTime = useRef<number>(0)
-  const audioRef = useRef<HTMLAudioElement | null>(null)
+  });
+  const animationRef = useRef<number>();
+  const lastDropTime = useRef<number>(0);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
 
-  const touchStartRef = useRef<{ x: number; y: number; time: number } | null>(null)
-  const dropIntervalRef = useRef<NodeJS.Timeout | null>(null)
-  const mouseStartRef = useRef<{ x: number; y: number; time: number } | null>(null)
+  const touchStartRef = useRef<{ x: number; y: number; time: number } | null>(
+    null
+  );
+  const dropIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const mouseStartRef = useRef<{ x: number; y: number; time: number } | null>(
+    null
+  );
 
-  const [score, setScore] = useState(0)
-  const [lines, setLines] = useState(0)
-  const [gameOver, setGameOver] = useState(false)
+  const [score, setScore] = useState(0);
+  const [lines, setLines] = useState(0);
+  const [gameOver, setGameOver] = useState(false);
 
   useEffect(() => {
     const initAudio = async () => {
       try {
-        audioRef.current = new Audio("https://audio.jukehost.co.uk/xWzqkPAuaSuh0W5QCe7qPJV8rArjKVBR")
-        audioRef.current.loop = true
-        audioRef.current.volume = 0.3
-        audioRef.current.preload = "metadata"
+        audioRef.current = new Audio(
+          "https://audio.jukehost.co.uk/xWzqkPAuaSuh0W5QCe7qPJV8rArjKVBR"
+        );
+        audioRef.current.loop = true;
+        audioRef.current.volume = 0.3;
+        audioRef.current.preload = "metadata";
       } catch (error) {
-        console.warn("Audio initialization failed:", error)
+        console.warn("Audio initialization failed:", error);
       }
-    }
+    };
 
-    initAudio()
+    initAudio();
 
     return () => {
       if (audioRef.current) {
         try {
-          audioRef.current.pause()
-          audioRef.current.src = ""
-          audioRef.current.load()
+          audioRef.current.pause();
+          audioRef.current.src = "";
+          audioRef.current.load();
         } catch (error) {
           // Ignore cleanup errors
         }
-        audioRef.current = null
+        audioRef.current = null;
       }
-    }
-  }, [])
+    };
+  }, []);
 
   useEffect(() => {
     const handleAudio = async () => {
-      if (!audioRef.current) return
+      if (!audioRef.current) return;
 
       try {
         if (isActive) {
-          await audioRef.current.play()
+          await audioRef.current.play();
         } else {
-          audioRef.current.pause()
-          audioRef.current.currentTime = 0
+          audioRef.current.pause();
+          audioRef.current.currentTime = 0;
         }
       } catch (error) {
         if (error.name !== "AbortError") {
-          console.warn("Audio operation failed:", error)
+          console.warn("Audio operation failed:", error);
         }
         // Silently ignore AbortError as it's expected during rapid scrolling
       }
-    }
+    };
 
-    handleAudio()
-  }, [isActive])
+    handleAudio();
+  }, [isActive]);
 
   const getRandomTetromino = (): TetrominoType => {
-    const types = Object.keys(TETROMINOES) as TetrominoType[]
-    return types[Math.floor(Math.random() * types.length)]
-  }
+    const types = Object.keys(TETROMINOES) as TetrominoType[];
+    return types[Math.floor(Math.random() * types.length)];
+  };
 
   const createPiece = (type: TetrominoType) => ({
     shape: TETROMINOES[type],
     x: Math.floor(GRID_WIDTH / 2) - Math.floor(TETROMINOES[type][0].length / 2),
     y: 0,
     type,
-  })
+  });
 
-  const isValidMove = (piece: typeof gameStateRef.current.currentPiece, dx = 0, dy = 0, newShape?: number[][]) => {
-    if (!piece) return false
+  const isValidMove = (
+    piece: typeof gameStateRef.current.currentPiece,
+    dx = 0,
+    dy = 0,
+    newShape?: number[][]
+  ) => {
+    if (!piece) return false;
 
-    const shape = newShape || piece.shape
-    const newX = piece.x + dx
-    const newY = piece.y + dy
+    const shape = newShape || piece.shape;
+    const newX = piece.x + dx;
+    const newY = piece.y + dy;
 
     for (let y = 0; y < shape.length; y++) {
       for (let x = 0; x < shape[y].length; x++) {
         if (shape[y][x]) {
-          const boardX = newX + x
-          const boardY = newY + y
+          const boardX = newX + x;
+          const boardY = newY + y;
 
           if (boardX < 0 || boardX >= GRID_WIDTH || boardY >= GRID_HEIGHT) {
-            return false
+            return false;
           }
           if (boardY >= 0 && gameStateRef.current.grid[boardY][boardX]) {
-            return false
+            return false;
           }
         }
       }
     }
-    return true
-  }
+    return true;
+  };
 
   const rotatePiece = (shape: number[][]) => {
-    const rotated = shape[0].map((_, index) => shape.map((row) => row[index]).reverse())
-    return rotated
-  }
+    const rotated = shape[0].map((_, index) =>
+      shape.map((row) => row[index]).reverse()
+    );
+    return rotated;
+  };
 
   const placePiece = () => {
-    const state = gameStateRef.current
-    if (!state.currentPiece) return
+    const state = gameStateRef.current;
+    if (!state.currentPiece) return;
 
-    const { shape, x, y, type } = state.currentPiece
+    const { shape, x, y, type } = state.currentPiece;
 
     for (let py = 0; py < shape.length; py++) {
       for (let px = 0; px < shape[py].length; px++) {
         if (shape[py][px]) {
-          const boardY = y + py
-          const boardX = x + px
+          const boardY = y + py;
+          const boardX = x + px;
           if (boardY >= 0) {
-            state.grid[boardY][boardX] = Object.keys(TETROMINOES).indexOf(type) + 1
+            state.grid[boardY][boardX] =
+              Object.keys(TETROMINOES).indexOf(type) + 1;
           }
         }
       }
     }
 
     // Check for completed lines
-    const completedLines = []
+    const completedLines = [];
     for (let y = GRID_HEIGHT - 1; y >= 0; y--) {
       if (state.grid[y].every((cell) => cell !== 0)) {
-        completedLines.push(y)
+        completedLines.push(y);
       }
     }
 
     // Remove completed lines
     completedLines.forEach((lineY) => {
-      state.grid.splice(lineY, 1)
-      state.grid.unshift(Array(GRID_WIDTH).fill(0))
-    })
+      state.grid.splice(lineY, 1);
+      state.grid.unshift(Array(GRID_WIDTH).fill(0));
+    });
 
     // Update score and lines
     if (completedLines.length > 0) {
-      const linePoints = [0, 40, 100, 300, 1200]
-      state.lines += completedLines.length
-      state.score += linePoints[completedLines.length] * state.level
-      state.level = Math.floor(state.lines / 10) + 1
+      const linePoints = [0, 40, 100, 300, 1200];
+      state.lines += completedLines.length;
+      state.score += linePoints[completedLines.length] * state.level;
+      state.level = Math.floor(state.lines / 10) + 1;
 
-      setLines(state.lines)
-      setScore(state.score)
-      onScoreUpdate(state.score)
+      setLines(state.lines);
+      setScore(state.score);
+      onScoreUpdate(state.score);
     }
 
     // Spawn new piece
-    state.currentPiece = createPiece(state.nextPiece)
-    state.nextPiece = getRandomTetromino()
+    state.currentPiece = createPiece(state.nextPiece);
+    state.nextPiece = getRandomTetromino();
 
     // Check game over
     if (!isValidMove(state.currentPiece)) {
-      state.gameOver = true
-      setGameOver(true)
+      state.gameOver = true;
+      setGameOver(true);
     }
-  }
+  };
 
   const movePiece = (dx: number, dy: number) => {
-    const state = gameStateRef.current
-    if (!state.currentPiece || state.gameOver) return false
+    const state = gameStateRef.current;
+    if (!state.currentPiece || state.gameOver) return false;
 
     if (isValidMove(state.currentPiece, dx, dy)) {
-      state.currentPiece.x += dx
-      state.currentPiece.y += dy
-      return true
+      state.currentPiece.x += dx;
+      state.currentPiece.y += dy;
+      return true;
     }
 
     if (dy > 0) {
-      placePiece()
+      placePiece();
     }
-    return false
-  }
+    return false;
+  };
 
   const rotatePieceAction = () => {
-    const state = gameStateRef.current
-    if (!state.currentPiece || state.gameOver) return
+    const state = gameStateRef.current;
+    if (!state.currentPiece || state.gameOver) return;
 
-    const rotatedShape = rotatePiece(state.currentPiece.shape)
+    const rotatedShape = rotatePiece(state.currentPiece.shape);
     if (isValidMove(state.currentPiece, 0, 0, rotatedShape)) {
-      state.currentPiece.shape = rotatedShape
+      state.currentPiece.shape = rotatedShape;
     }
-  }
+  };
 
   const dropPiece = () => {
     while (movePiece(0, 1)) {
       // Keep dropping until it can't move down
     }
-  }
+  };
 
   const draw = useCallback(() => {
-    const canvas = canvasRef.current
-    if (!canvas) return
+    const canvas = canvasRef.current;
+    if (!canvas) return;
 
-    const ctx = canvas.getContext("2d")
-    if (!ctx) return
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
 
-    const state = gameStateRef.current
+    const state = gameStateRef.current;
 
     // Clear canvas
-    ctx.fillStyle = "#1e293b"
-    ctx.fillRect(0, 0, canvas.width, canvas.height)
+    ctx.fillStyle = "#1e293b";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
 
     // Draw grid
-    ctx.strokeStyle = "#475569"
-    ctx.lineWidth = 1
+    ctx.strokeStyle = "#475569";
+    ctx.lineWidth = 1;
     for (let x = 0; x <= GRID_WIDTH; x++) {
-      ctx.beginPath()
-      ctx.moveTo(x * CELL_SIZE, 0)
-      ctx.lineTo(x * CELL_SIZE, GRID_HEIGHT * CELL_SIZE)
-      ctx.stroke()
+      ctx.beginPath();
+      ctx.moveTo(x * CELL_SIZE, 0);
+      ctx.lineTo(x * CELL_SIZE, GRID_HEIGHT * CELL_SIZE);
+      ctx.stroke();
     }
     for (let y = 0; y <= GRID_HEIGHT; y++) {
-      ctx.beginPath()
-      ctx.moveTo(0, y * CELL_SIZE)
-      ctx.lineTo(GRID_WIDTH * CELL_SIZE, y * CELL_SIZE)
-      ctx.stroke()
+      ctx.beginPath();
+      ctx.moveTo(0, y * CELL_SIZE);
+      ctx.lineTo(GRID_WIDTH * CELL_SIZE, y * CELL_SIZE);
+      ctx.stroke();
     }
 
     // Draw placed pieces
     for (let y = 0; y < GRID_HEIGHT; y++) {
       for (let x = 0; x < GRID_WIDTH; x++) {
         if (state.grid[y][x]) {
-          const colorIndex = state.grid[y][x] - 1
-          const colors = Object.values(COLORS)
-          ctx.fillStyle = colors[colorIndex] || "#ffffff"
-          ctx.fillRect(x * CELL_SIZE + 1, y * CELL_SIZE + 1, CELL_SIZE - 2, CELL_SIZE - 2)
+          const colorIndex = state.grid[y][x] - 1;
+          const colors = Object.values(COLORS);
+          ctx.fillStyle = colors[colorIndex] || "#ffffff";
+          ctx.fillRect(
+            x * CELL_SIZE + 1,
+            y * CELL_SIZE + 1,
+            CELL_SIZE - 2,
+            CELL_SIZE - 2
+          );
         }
       }
     }
 
     // Draw current piece
     if (state.currentPiece) {
-      ctx.fillStyle = COLORS[state.currentPiece.type]
-      const { shape, x, y } = state.currentPiece
+      ctx.fillStyle = COLORS[state.currentPiece.type];
+      const { shape, x, y } = state.currentPiece;
       for (let py = 0; py < shape.length; py++) {
         for (let px = 0; px < shape[py].length; px++) {
           if (shape[py][px]) {
-            const drawX = (x + px) * CELL_SIZE
-            const drawY = (y + py) * CELL_SIZE
+            const drawX = (x + px) * CELL_SIZE;
+            const drawY = (y + py) * CELL_SIZE;
             if (drawY >= 0) {
-              ctx.fillRect(drawX + 1, drawY + 1, CELL_SIZE - 2, CELL_SIZE - 2)
+              ctx.fillRect(drawX + 1, drawY + 1, CELL_SIZE - 2, CELL_SIZE - 2);
             }
           }
         }
       }
     }
-  }, [])
+  }, []);
 
   const gameLoop = useCallback(
     (currentTime: number) => {
-      const state = gameStateRef.current
-      if (!isActive || state.gameOver) return
+      const state = gameStateRef.current;
+      if (!isActive || state.gameOver) return;
 
-      const dropInterval = Math.max(50, 500 - (state.level - 1) * 50)
+      const dropInterval = Math.max(50, 500 - (state.level - 1) * 50);
 
       if (currentTime - lastDropTime.current > dropInterval) {
-        movePiece(0, 1)
-        lastDropTime.current = currentTime
+        movePiece(0, 1);
+        lastDropTime.current = currentTime;
       }
 
-      draw()
-      animationRef.current = requestAnimationFrame(gameLoop)
+      draw();
+      animationRef.current = requestAnimationFrame(gameLoop);
     },
-    [draw, isActive],
-  )
+    [draw, isActive]
+  );
 
   const resetGame = useCallback(() => {
-    const state = gameStateRef.current
+    const state = gameStateRef.current;
     state.grid = Array(GRID_HEIGHT)
       .fill(null)
-      .map(() => Array(GRID_WIDTH).fill(0))
-    state.currentPiece = createPiece(getRandomTetromino())
-    state.nextPiece = getRandomTetromino()
-    state.score = 0
-    state.lines = 0
-    state.level = 1
-    state.gameOver = false
+      .map(() => Array(GRID_WIDTH).fill(0));
+    state.currentPiece = createPiece(getRandomTetromino());
+    state.nextPiece = getRandomTetromino();
+    state.score = 0;
+    state.lines = 0;
+    state.level = 1;
+    state.gameOver = false;
 
-    setScore(0)
-    setLines(0)
-    setGameOver(false)
-    lastDropTime.current = 0
-  }, [])
+    setScore(0);
+    setLines(0);
+    setGameOver(false);
+    lastDropTime.current = 0;
+  }, []);
 
   useEffect(() => {
     if (isActive && !gameOver) {
       if (gameStateRef.current.currentPiece === null) {
-        resetGame()
+        resetGame();
       }
-      animationRef.current = requestAnimationFrame(gameLoop)
+      animationRef.current = requestAnimationFrame(gameLoop);
     } else {
       if (animationRef.current) {
-        cancelAnimationFrame(animationRef.current)
+        cancelAnimationFrame(animationRef.current);
       }
     }
 
     return () => {
       if (animationRef.current) {
-        cancelAnimationFrame(animationRef.current)
+        cancelAnimationFrame(animationRef.current);
       }
-    }
-  }, [isActive, gameOver, gameLoop, resetGame])
+    };
+  }, [isActive, gameOver, gameLoop, resetGame]);
 
   const handleTouchStart = useCallback((e: React.TouchEvent) => {
-    e.preventDefault()
-    const touch = e.touches[0]
-    const rect = canvasRef.current?.getBoundingClientRect()
-    if (!rect) return
+    e.preventDefault();
+    const touch = e.touches[0];
+    const rect = canvasRef.current?.getBoundingClientRect();
+    if (!rect) return;
 
     touchStartRef.current = {
       x: touch.clientX - rect.left,
       y: touch.clientY - rect.top,
       time: Date.now(),
-    }
-  }, [])
+    };
+  }, []);
 
   const handleTouchMove = useCallback((e: React.TouchEvent) => {
-    e.preventDefault()
-    if (!touchStartRef.current) return
+    e.preventDefault();
+    if (!touchStartRef.current) return;
 
-    const touch = e.touches[0]
-    const rect = canvasRef.current?.getBoundingClientRect()
-    if (!rect) return
+    const touch = e.touches[0];
+    const rect = canvasRef.current?.getBoundingClientRect();
+    if (!rect) return;
 
-    const currentX = touch.clientX - rect.left
-    const currentY = touch.clientY - rect.top
-    const deltaX = currentX - touchStartRef.current.x
-    const deltaY = currentY - touchStartRef.current.y
-    const absDeltaX = Math.abs(deltaX)
-    const absDeltaY = Math.abs(deltaY)
+    const currentX = touch.clientX - rect.left;
+    const currentY = touch.clientY - rect.top;
+    const deltaX = currentX - touchStartRef.current.x;
+    const deltaY = currentY - touchStartRef.current.y;
+    const absDeltaX = Math.abs(deltaX);
+    const absDeltaY = Math.abs(deltaY);
 
     if (absDeltaY > 40 && absDeltaY > absDeltaX) {
       if (deltaY > 0) {
         // Swipe down - drop piece
-        dropPiece()
-        touchStartRef.current = null // Reset to prevent multiple drops
-        return
+        dropPiece();
+        touchStartRef.current = null; // Reset to prevent multiple drops
+        return;
       }
     }
 
     // Swipe threshold for left/right movement
     if (absDeltaX > 30 && absDeltaX > absDeltaY) {
       if (deltaX > 0) {
-        movePiece(1, 0) // Move right
+        movePiece(1, 0); // Move right
       } else {
-        movePiece(-1, 0) // Move left
+        movePiece(-1, 0); // Move left
       }
       // Reset touch start to prevent multiple moves
-      touchStartRef.current.x = currentX
+      touchStartRef.current.x = currentX;
     }
-  }, [])
+  }, []);
 
   const handleTouchEnd = useCallback((e: React.TouchEvent) => {
-    e.preventDefault()
+    e.preventDefault();
 
-    if (!touchStartRef.current) return
+    if (!touchStartRef.current) return;
 
-    const touchDuration = Date.now() - touchStartRef.current.time
+    const touchDuration = Date.now() - touchStartRef.current.time;
 
     // If it was a quick tap (not a swipe), rotate the piece
     if (touchDuration < 200) {
-      rotatePieceAction()
+      rotatePieceAction();
     }
 
-    touchStartRef.current = null
-  }, [])
+    touchStartRef.current = null;
+  }, []);
 
   const handleMouseDown = useCallback((e: React.MouseEvent) => {
-    const rect = canvasRef.current?.getBoundingClientRect()
-    if (!rect) return
+    const rect = canvasRef.current?.getBoundingClientRect();
+    if (!rect) return;
 
     mouseStartRef.current = {
       x: e.clientX - rect.left,
       y: e.clientY - rect.top,
       time: Date.now(),
-    }
-  }, [])
+    };
+  }, []);
 
   const handleMouseMove = useCallback((e: React.MouseEvent) => {
-    if (!mouseStartRef.current) return
+    if (!mouseStartRef.current) return;
 
-    const rect = canvasRef.current?.getBoundingClientRect()
-    if (!rect) return
+    const rect = canvasRef.current?.getBoundingClientRect();
+    if (!rect) return;
 
-    const currentX = e.clientX - rect.left
-    const currentY = e.clientY - rect.top
-    const deltaX = currentX - mouseStartRef.current.x
-    const deltaY = currentY - mouseStartRef.current.y
-    const absDeltaX = Math.abs(deltaX)
-    const absDeltaY = Math.abs(deltaY)
+    const currentX = e.clientX - rect.left;
+    const currentY = e.clientY - rect.top;
+    const deltaX = currentX - mouseStartRef.current.x;
+    const deltaY = currentY - mouseStartRef.current.y;
+    const absDeltaX = Math.abs(deltaX);
+    const absDeltaY = Math.abs(deltaY);
 
     if (absDeltaY > 40 && absDeltaY > absDeltaX) {
       if (deltaY > 0) {
         // Mouse drag down - drop piece
-        dropPiece()
-        mouseStartRef.current = null
-        return
+        dropPiece();
+        mouseStartRef.current = null;
+        return;
       }
     }
 
     // Mouse drag threshold for left/right movement
     if (absDeltaX > 30 && absDeltaX > absDeltaY) {
       if (deltaX > 0) {
-        movePiece(1, 0) // Move right
+        movePiece(1, 0); // Move right
       } else {
-        movePiece(-1, 0) // Move left
+        movePiece(-1, 0); // Move left
       }
-      mouseStartRef.current.x = currentX
+      mouseStartRef.current.x = currentX;
     }
-  }, [])
+  }, []);
 
   const handleMouseUp = useCallback(() => {
-    if (!mouseStartRef.current) return
+    if (!mouseStartRef.current) return;
 
-    const mouseDuration = Date.now() - mouseStartRef.current.time
+    const mouseDuration = Date.now() - mouseStartRef.current.time;
 
     // If it was a quick click (not a drag), rotate the piece
     if (mouseDuration < 200) {
-      rotatePieceAction()
+      rotatePieceAction();
     }
 
-    mouseStartRef.current = null
-  }, [])
+    mouseStartRef.current = null;
+  }, []);
 
   const handleWheel = useCallback((e: React.WheelEvent) => {
-    e.preventDefault()
+    e.preventDefault();
     if (e.deltaY > 0) {
-      dropPiece()
+      dropPiece();
     }
-  }, [])
+  }, []);
 
   if (!isActive) {
     return (
@@ -536,7 +559,7 @@ export function TetrisGame({ isActive, onPlay, onScoreUpdate }: TetrisGameProps)
           <p className="text-xl opacity-80">Clear the lines</p>
         </div>
       </div>
-    )
+    );
   }
 
   return (
@@ -547,9 +570,9 @@ export function TetrisGame({ isActive, onPlay, onScoreUpdate }: TetrisGameProps)
           <div>Score: {score}</div>
           <div>Lines: {lines}</div>
         </div>
-        <Button onClick={onPlay} variant="ghost" size="sm" className="text-white hover:bg-white/20">
+        {/* <Button onClick={onPlay} variant="ghost" size="sm" className="text-white hover:bg-white/20">
           ✕
-        </Button>
+        </Button> */}
       </div>
 
       {/* Game Canvas */}
@@ -557,8 +580,12 @@ export function TetrisGame({ isActive, onPlay, onScoreUpdate }: TetrisGameProps)
         {gameOver ? (
           <div className="text-center text-white">
             <div className="text-6xl mb-4">🧩</div>
-            <h2 className="text-2xl font-bold mb-4 text-shadow-strong">Game Over!</h2>
-            <p className="text-lg mb-2 text-shadow-medium">Final Score: {score}</p>
+            <h2 className="text-2xl font-bold mb-4 text-shadow-strong">
+              Game Over!
+            </h2>
+            <p className="text-lg mb-2 text-shadow-medium">
+              Final Score: {score}
+            </p>
             <Button
               onClick={resetGame}
               className="bg-accent hover:bg-accent/90 text-accent-foreground px-8 py-3 text-lg"
@@ -586,5 +613,5 @@ export function TetrisGame({ isActive, onPlay, onScoreUpdate }: TetrisGameProps)
         )}
       </div>
     </div>
-  )
+  );
 }
