@@ -582,13 +582,6 @@ export function TetrisGame({ isActive, onPlay, onScoreUpdate }: TetrisGameProps)
               onMouseUp={handleMouseUp}
               onWheel={handleWheel}
             />
-            <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 bg-black/50 rounded-lg px-3 py-2 backdrop-blur-sm">
-              <p className="text-white text-xs text-center text-shadow-soft">
-                Touch: Swipe Move • Tap Rotate • Swipe Down Drop
-                <br />
-                <span className="opacity-60">Mouse: Drag Move • Click Rotate • Wheel Drop</span>
-              </p>
-            </div>
           </div>
         )}
       </div>

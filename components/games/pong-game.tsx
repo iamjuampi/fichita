@@ -320,15 +320,6 @@ export function PongGame({ isActive, onPlay, onScoreUpdate }: PongGameProps) {
           style={{ touchAction: "none" }}
         />
       </div>
-
-      {/* Instructions */}
-      <div className="absolute bottom-20 left-4 right-20 bg-white/10 rounded-lg p-4 backdrop-blur-sm">
-        <p className="text-white/80 text-center text-sm text-shadow-soft">
-          Touch and drag to move your paddle
-          <br />
-          <span className="text-xs opacity-60">Mouse: Click and drag • First to score wins!</span>
-        </p>
-      </div>
     </div>
   )
 }

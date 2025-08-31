@@ -117,14 +117,6 @@ export function PlaceholderGame({ gameId, isActive, onPlay }: PlaceholderGamePro
           </div>
         </div>
       </div>
-
-      <div className="absolute bottom-20 left-4 right-20 h-32 bg-white/10 rounded-lg flex items-center justify-center backdrop-blur-sm">
-        <p className="text-white/80 text-center text-sm">
-          Game controls will be here
-          <br />
-          <span className="text-xs opacity-60">Tap to interact</span>
-        </p>
-      </div>
     </div>
   )
 }

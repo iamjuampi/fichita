@@ -551,17 +551,6 @@ export function SpaceInvadersGame({ isActive, onPlay, onScoreUpdate }: SpaceInva
           />
         )}
       </div>
-
-      {/* Controls */}
-      {!gameOver && (
-        <div className="absolute bottom-20 left-4 right-20 bg-white/10 rounded-lg p-4 backdrop-blur-sm">
-          <p className="text-white/80 text-center text-sm text-shadow-soft">
-            Move finger to control ship • Touch upper area to shoot
-            <br />
-            <span className="text-xs opacity-60">Mouse: Drag to move • Click to shoot</span>
-          </p>
-        </div>
-      )}
     </div>
   )
 }
