@@ -433,7 +433,7 @@ export function SpaceInvadersGame({ isActive, onPlay, onScoreUpdate }: SpaceInva
 
   if (!isActive) {
     return (
-      <div className="fixed inset-0 h-screen w-screen bg-gradient-to-br from-green-600 to-lime-500 flex items-center justify-center">
+      <div className="fixed inset-0 h-screen w-screen bg-gradient-to-b from-green-600 to-lime-500 flex items-center justify-center">
         <div className="text-center text-white">
           <div className="text-8xl mb-4">👾</div>
           <h2 className="text-4xl font-bold mb-2">Base Invaders</h2>
@@ -444,7 +444,7 @@ export function SpaceInvadersGame({ isActive, onPlay, onScoreUpdate }: SpaceInva
   }
 
   return (
-    <div className="fixed inset-0 h-screen w-screen bg-gradient-to-br from-green-600 to-lime-500 flex flex-col items-center justify-center relative">
+    <div className="fixed inset-0 h-screen w-screen bg-gradient-to-b from-green-600 to-lime-500 flex flex-col items-center justify-center relative">
       {/* Game UI */}
       <div className="absolute top-8 left-4 right-4 flex justify-between items-center text-white z-10">
         <div className="text-sm font-bold text-shadow-medium">

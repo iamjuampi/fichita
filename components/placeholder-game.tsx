@@ -83,9 +83,7 @@ export function PlaceholderGame({ gameId, isActive, onPlay }: PlaceholderGamePro
 
   if (!isActive) {
     return (
-      <div
-        className={`fixed inset-0 h-screen w-screen bg-gradient-to-br ${gameContent.color} flex items-center justify-center`}
-      >
+      <div className={`w-full h-full bg-gradient-to-br ${gameContent.color} flex items-center justify-center`}>
         <div className="text-center text-white">
           <div className="text-8xl mb-4">{gameContent.emoji}</div>
           <h2 className="text-4xl font-bold mb-2">{gameContent.title}</h2>
@@ -97,7 +95,7 @@ export function PlaceholderGame({ gameId, isActive, onPlay }: PlaceholderGamePro
 
   return (
     <div
-      className={`fixed inset-0 h-screen w-screen bg-gradient-to-br ${gameContent.color} flex flex-col items-center justify-center relative`}
+      className={`w-full h-full bg-gradient-to-br ${gameContent.color} flex flex-col items-center justify-center relative overflow-hidden`}
     >
       <div className="absolute top-8 left-4 right-4 flex justify-between items-center text-white">
         <div className="text-lg font-bold">Score: {score}</div>

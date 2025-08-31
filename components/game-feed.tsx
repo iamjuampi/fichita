@@ -51,6 +51,13 @@ export function GameFeed() {
   const touchStartX = useRef<number>(0)
   const isInGameArea = useRef<boolean>(false)
 
+  useEffect(() => {
+    const gameChangeEvent = new CustomEvent("gameChanged", {
+      detail: { gameIndex: currentIndex },
+    })
+    window.dispatchEvent(gameChangeEvent)
+  }, [currentIndex])
+
   const handleScroll = useCallback(
     (direction: "up" | "down") => {
       if (isScrolling) return
@@ -85,23 +92,34 @@ export function GameFeed() {
   }, [currentIndex])
 
   const handleTouchStart = (e: React.TouchEvent) => {
+    e.preventDefault()
     touchStartY.current = e.touches[0].clientY
     touchStartX.current = e.touches[0].clientX
 
     const screenWidth = window.innerWidth
+    const screenHeight = window.innerHeight
     const gameAreaStart = screenWidth * 0.1
     const gameAreaEnd = screenWidth * 0.9
+    const gameAreaTop = screenHeight * 0.1
+    const gameAreaBottom = screenHeight * 0.9
 
-    isInGameArea.current = touchStartX.current >= gameAreaStart && touchStartX.current <= gameAreaEnd
+    isInGameArea.current =
+      touchStartX.current >= gameAreaStart &&
+      touchStartX.current <= gameAreaEnd &&
+      e.touches[0].clientY >= gameAreaTop &&
+      e.touches[0].clientY <= gameAreaBottom
   }
 
   const handleTouchEnd = (e: React.TouchEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+
     if (isInGameArea.current) return
 
     touchEndY.current = e.changedTouches[0].clientY
     const deltaY = touchStartY.current - touchEndY.current
 
-    if (Math.abs(deltaY) > 30) {
+    if (Math.abs(deltaY) > 20) {
       if (deltaY > 0) {
         handleScroll("down")
       } else {
@@ -112,6 +130,7 @@ export function GameFeed() {
 
   const handleWheel = (e: React.WheelEvent) => {
     e.preventDefault()
+    e.stopPropagation()
     if (e.deltaY > 0) {
       handleScroll("down")
     } else {
@@ -122,20 +141,21 @@ export function GameFeed() {
   return (
     <div
       ref={containerRef}
-      className="relative h-full w-full overflow-hidden"
+      className="relative h-dvh w-full overflow-hidden touch-none select-none"
+      style={{ touchAction: "none" }}
       onTouchStart={handleTouchStart}
       onTouchEnd={handleTouchEnd}
       onWheel={handleWheel}
     >
       <div
-        className="flex flex-col transition-transform duration-200 ease-out"
+        className="flex flex-col transition-transform duration-200 ease-out will-change-transform"
         style={{
-          transform: `translateY(-${scrollPosition}vh)`,
-          height: `${INFINITE_GAMES.length * 100}vh`,
+          transform: `translateY(-${scrollPosition}dvh)`,
+          height: `${INFINITE_GAMES.length * 100}dvh`,
         }}
       >
         {INFINITE_GAMES.map((game, index) => (
-          <div key={game.uniqueId} className="h-screen w-full flex-shrink-0 relative">
+          <div key={game.uniqueId} className="h-dvh w-full flex-shrink-0 relative">
             <GameCard game={game} isActive={index === currentIndex} />
           </div>
         ))}

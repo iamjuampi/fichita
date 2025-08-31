@@ -143,4 +143,23 @@
   .text-shadow-glow {
     text-shadow: 0 0 8px rgba(0, 0, 0, 0.6), 0 2px 4px rgba(0, 0, 0, 0.8);
   }
+
+  /* Added touch handling utilities for better mobile experience */
+  .touch-none {
+    touch-action: none;
+  }
+
+  .touch-manipulation {
+    touch-action: manipulation;
+  }
+
+  /* Prevent text selection and improve performance */
+  .select-none {
+    user-select: none;
+    -webkit-user-select: none;
+  }
+
+  .will-change-transform {
+    will-change: transform;
+  }
 }

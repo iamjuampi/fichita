@@ -10,6 +10,13 @@ export const metadata: Metadata = {
   title: "FICHITA",
   description: "Social minigames with $fichitas tokens",
   generator: "v0.app",
+  viewport: {
+    width: "device-width",
+    initialScale: 1,
+    maximumScale: 1,
+    userScalable: false,
+    viewportFit: "cover",
+  },
 }
 
 export default function RootLayout({
