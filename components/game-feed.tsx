@@ -56,6 +56,8 @@ export function GameFeed() {
   const containerRef = useRef<HTMLDivElement>(null)
   const touchStartY = useRef<number>(0)
   const touchEndY = useRef<number>(0)
+  const touchStartX = useRef<number>(0)
+  const isInGameArea = useRef<boolean>(false)
 
   const handleScroll = useCallback(
     (direction: "up" | "down") => {
@@ -69,7 +71,7 @@ export function GameFeed() {
         setCurrentIndex((prev) => prev - 1)
       }
 
-      setTimeout(() => setIsScrolling(false), 500)
+      setTimeout(() => setIsScrolling(false), 300)
     },
     [isScrolling],
   )
@@ -90,9 +92,19 @@ export function GameFeed() {
 
   const handleTouchStart = (e: React.TouchEvent) => {
     touchStartY.current = e.touches[0].clientY
+    touchStartX.current = e.touches[0].clientX
+
+    // Detect if touch started in game area (center 80% of screen width)
+    const screenWidth = window.innerWidth
+    const gameAreaStart = screenWidth * 0.1
+    const gameAreaEnd = screenWidth * 0.9
+
+    isInGameArea.current = touchStartX.current >= gameAreaStart && touchStartX.current <= gameAreaEnd
   }
 
   const handleTouchEnd = (e: React.TouchEvent) => {
+    if (isInGameArea.current) return
+
     touchEndY.current = e.changedTouches[0].clientY
     const deltaY = touchStartY.current - touchEndY.current
 
@@ -124,7 +136,7 @@ export function GameFeed() {
       onWheel={handleWheel}
     >
       <div
-        className="flex flex-col transition-transform duration-500 ease-out"
+        className="flex flex-col transition-transform duration-300 ease-in-out"
         style={{
           transform: `translateY(-${currentIndex * 100}vh)`,
           height: `${INFINITE_GAMES.length * 100}vh`,

@@ -136,10 +136,15 @@ export function GameCard({ game, isActive }: GameCardProps) {
 
   return (
     <div className="relative h-full w-full bg-background">
-      {/* Game Area */}
+      {/* Game Area - Added defined game area boundaries */}
       <div className="absolute inset-0">
-        <PlaceholderGame gameId={game.id} isActive={isActive} onPlay={() => {}} onScoreUpdate={handleScoreUpdate} />
+        <div className="absolute inset-x-[10%] inset-y-0 bg-transparent">
+          <PlaceholderGame gameId={game.id} isActive={isActive} onPlay={() => {}} onScoreUpdate={handleScoreUpdate} />
+        </div>
       </div>
+
+      <div className="absolute left-0 top-0 w-[10%] h-full bg-transparent pointer-events-none" />
+      <div className="absolute right-0 top-0 w-[10%] h-full bg-transparent pointer-events-none" />
 
       {/* Top Bar with Profile Button */}
       <div className="absolute top-4 left-4 right-4 flex justify-between items-center z-20">
@@ -157,7 +162,7 @@ export function GameCard({ game, isActive }: GameCardProps) {
       </div>
 
       {/* Right Side Actions */}
-      <div className="absolute right-4 bottom-20 flex flex-col items-center space-y-6">
+      <div className="absolute right-4 bottom-20 flex flex-col items-center space-y-6 z-20">
         {/* Profile Picture with Follow Button */}
         <div className="relative">
           <div className="h-12 w-12 rounded-full bg-accent flex items-center justify-center border-2 border-white">
@@ -219,7 +224,7 @@ export function GameCard({ game, isActive }: GameCardProps) {
       </div>
 
       {/* Bottom Caption */}
-      <div className="absolute bottom-4 left-4 right-20 text-white">
+      <div className="absolute bottom-4 left-4 right-20 text-white z-20">
         <div className="space-y-2">
           <div className="flex items-center space-x-2">
             <div className="h-8 w-8 rounded-full bg-accent flex items-center justify-center">
